@@ -1,6 +1,7 @@
-edge_tts==7.2.7
-protobuf==6.33.5
-streamlit==1.54.0
-streamlit_audiorec==0.1.3
-yt_dlp==2026.2.21
+streamlit
 google-generativeai
+yt-dlp
+edge-tts
+streamlit-audiorec
+Pillow
+protobuf
