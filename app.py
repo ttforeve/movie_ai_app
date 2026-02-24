@@ -25,13 +25,26 @@ def clean_script_text(raw_text):
     return '\n\n'.join(lines)
 
 def download_audio_from_youtube(url):
-    ydl_opts = {'format': 'bestaudio/best', 'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192',}], 'outtmpl': 'downloaded_audio.%(ext)s', 'quiet': True, 'noplaylist': True}
+    ydl_opts = {
+        'format': 'bestaudio/best', 
+        'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}], 
+        'outtmpl': 'downloaded_audio.%(ext)s', 
+        'quiet': True, 
+        'noplaylist': True,
+        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}  # <--- ဒီလိုင်းက IP ပိတ်တာကို ကျော်ပေးမယ့် လျှို့ဝှက်ချက်ပါ
+    }
     if os.path.exists("downloaded_audio.mp3"): os.remove("downloaded_audio.mp3")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: ydl.download([url])
     return "downloaded_audio.mp3"
 
 def download_video_from_youtube(url):
-    ydl_opts = {'format': 'best[ext=mp4]', 'outtmpl': 'downloaded_video.mp4', 'quiet': True, 'noplaylist': True}
+    ydl_opts = {
+        'format': 'best[ext=mp4]', 
+        'outtmpl': 'downloaded_video.mp4', 
+        'quiet': True, 
+        'noplaylist': True,
+        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}  # <--- ဒီလိုင်းက IP ပိတ်တာကို ကျော်ပေးမယ့် လျှို့ဝှက်ချက်ပါ
+    }
     if os.path.exists("downloaded_video.mp4"): os.remove("downloaded_video.mp4")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: ydl.download([url])
     return "downloaded_video.mp4"
@@ -329,4 +342,5 @@ with upload_tab:
                 
 
                 st.info("💡 Developer Note: အသံတကယ်ပြောင်းရန် နောက်ကွယ်တွင် API Key (ဥပမာ- ElevenLabs) ထည့်သွင်းချိတ်ဆက်ရန် လိုအပ်ပါသည်။")
+
 
