@@ -161,13 +161,19 @@ with tab1:
         elif not api_key:
             st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
+    # Outline ထွက်လာရင် ပြပေးမည့်အပိုင်း (ဒီနေရာမှာ ပြဿနာကို ရှင်းထားပါတယ်)
     if st.session_state.outline_text:
         with st.expander("📑 Your Script Outline (ဒီခေါင်းစဉ်လေးတွေ အဆင်ပြေလား စစ်ကြည့်ပါ)", expanded=True):
             st.write(st.session_state.outline_text)
             if st.button("✨ ဒီ Outline အတိုင်း ဇာတ်ညွှန်း အပြည့်အစုံ ရေးပါ", use_container_width=True):
-                with st.spinner("Writing Full Script based on outline..."):
-                    prompt = base_rules + f"\n\nBased on this OUTLINE, write the full engaging script:\n{st.session_state.outline_text}"
-                    st.session_state.final_script = generate_content_safe(prompt)
+                if api_key:
+                    with st.spinner("Writing Full Script based on outline... (ခဏစောင့်ပါ)"):
+                        prompt = base_rules + f"\n\nBased on this OUTLINE, write the full engaging script:\n{st.session_state.outline_text}"
+                        st.session_state.final_script = generate_content_safe(prompt)
+                        st.session_state.outline_text = "" # Script ထွက်လာရင် Outline ကို အလိုလို ဖျောက်ပေးမည်
+                        st.rerun() # <--- UI ကို ချက်ချင်း Refresh လုပ်ပေးမည့် အသက်သွေးကြော
+                else:
+                    st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
@@ -385,6 +391,7 @@ with tab5:
                 label="📥 Download Recording (WAV)",
                 data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
+
 
 
 
