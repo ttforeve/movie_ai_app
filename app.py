@@ -1,4 +1,79 @@
-# --- TAB 1: IDEA TO SCRIPT ---
+import streamlit as st
+import google.generativeai as genai
+import tempfile
+import time
+import re
+import asyncio
+import edge_tts
+from st_audiorec import st_audiorec
+import os
+
+# ==========================================
+# 1. SYSTEM CONFIGURATION
+# ==========================================
+st.set_page_config(page_title="Universal Studio AI", page_icon="🎬", layout="wide")
+
+# ==========================================
+# 2. HELPER FUNCTIONS
+# ==========================================
+def clean_script_text(raw_text):
+    text = re.sub(r'\(.*?\)', '', raw_text)
+    text = re.sub(r'\[.*?\]', '', text)
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    return '\n\n'.join(lines)
+
+def generate_content_safe(prompt, media_file=None):
+    # Gemini 1.5 Flash က အသံ၊ ရုပ်၊ စာ အကုန်လုပ်နိုင်တဲ့ အမြန်ဆုံး မော်ဒယ်ပါ
+    models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
+    errors = []
+    for m in models_to_try:
+        try:
+            model = genai.GenerativeModel(m)
+            cfg = {"temperature": 0.7, "max_output_tokens": 8192}
+            if media_file: 
+                return model.generate_content([media_file, prompt], generation_config=cfg).text
+            return model.generate_content(prompt, generation_config=cfg).text
+        except Exception as e:
+            errors.append(f"{m}: {str(e)}")
+            continue 
+    return f"⚠️ Error: All models failed. Check API Key.\nLogs: {errors[0]}"
+
+def upload_to_gemini(path, mime):
+    return genai.upload_file(path, mime_type=mime)
+
+# ==========================================
+# 3. SIDEBAR
+# ==========================================
+with st.sidebar:
+    st.header("🔑 Master Key")
+    api_key = st.text_input("Gemini API Key", type="password")
+    if api_key:
+        genai.configure(api_key=api_key)
+        if st.button("📡 Check System"):
+            try:
+                list(genai.list_models())
+                st.success("✅ Gemini Online!")
+            except: 
+                st.error("❌ Invalid Key")
+
+# ==========================================
+# 4. MAIN INTERFACE & TABS
+# ==========================================
+st.title("🎬 Universal Studio AI")
+st.caption("Scripting • Research • Translation • Audio")
+
+# ဒီအပိုင်း ဖျက်မိသွားလို့ ခုနက Error တက်တာပါ
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "💡 Idea to Script", 
+    "📂 Video to Script", 
+    "🎵 Audio to Script",  
+    "🦁 Smart Translator", 
+    "🎙️ Audio Studio"
+])
+
+# ==========================================
+# --- TAB 1: PRO SCRIPTWRITER HUB ---
+# ==========================================
 with tab1:
     st.header("💡 Pro Scriptwriter Hub")
     st.caption("Platform အလိုက်၊ လေသံအလိုက် Professional ဇာတ်ညွှန်းများ ဖန်တီးပါ")
@@ -81,7 +156,6 @@ with tab1:
         elif not api_key:
             st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
-    # Outline ထွက်လာရင် ပြပေးမယ်
     if st.session_state.outline_text:
         with st.expander("📑 Your Script Outline (ဒီခေါင်းစဉ်လေးတွေ အဆင်ပြေလား စစ်ကြည့်ပါ)", expanded=True):
             st.write(st.session_state.outline_text)
@@ -89,41 +163,6 @@ with tab1:
                 with st.spinner("Writing Full Script based on outline..."):
                     prompt = base_rules + f"\n\nBased on this OUTLINE, write the full engaging script:\n{st.session_state.outline_text}"
                     st.session_state.final_script = generate_content_safe(prompt)
-
-    # --- 2. ဇာတ်ညွှန်း အပြည့်ရေးသည့် အပိုင်း (Direct) ---
-    if gen_script:
-        if api_key and topic:
-            with st.spinner("Writing Professional Script..."):
-                prompt = f"""
-                You are an expert Scriptwriter. Write a FULL, highly engaging script.
-                {base_rules}
-                Make it captivating and creative!
-                """
-                st.session_state.final_script = generate_content_safe(prompt)
-                st.session_state.outline_text = "" # Clear outline
-        elif not topic:
-            st.warning("⚠️ ခေါင်းစဉ် (Topic) အရင် ရိုက်ထည့်ပါဦး။")
-        elif not api_key:
-            st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
-
-    # --- ဇာတ်ညွှန်း ထွက်လာရင် ပြမယ့် UI (Metrics & Automation) ---
-    if st.session_state.final_script:
-        st.success("✅ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!")
-        
-        # စာလုံးရေနဲ့ ဖတ်ချိန် တွက်ချက်ခြင်း (ပျမ်းမျှ ၁ မိနစ်ကို စာလုံး ၁၃၀ နှုန်း)
-        words = len(st.session_state.final_script.split())
-        read_time = max(1, round(words / 130))
-        
-        met_c1, met_c2 = st.columns(2)
-        met_c1.metric("📝 စာလုံးရေ (Word Count)", f"~{words} words")
-        met_c2.metric("⏱️ ခန့်မှန်း ဖတ်ချိန် (Reading Time)", f"~{read_time} min")
-
-        script_result = st.text_area("Final Script:", value=st.session_state.final_script, height=400)
-        
-        # Teleprompter သို့ အလိုအလျောက် ပို့မယ့် ခလုတ် (Tab 5 သို့)
-        if st.button("📲 Teleprompter ထဲသို့ တိုက်ရိုက်ထည့်ရန် (Send to Tab 5)", type="primary"):
-            st.session_state.tele_text_input = clean_script_text(script_result) # [Visuals] တွေကို ဖယ်ပြီး စကားပြောသက်သက်ကိုပဲ ပို့မယ်
-            st.success("✅ Tab 5: Audio Studio အောက်က Teleprompter ထဲကို စာသားတွေ ရောက်သွားပါပြီ! သွားရောက် ဖတ်ရှုနိုင်ပါပြီ။")
 
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
@@ -341,6 +380,7 @@ with tab5:
                 label="📥 Download Recording (WAV)",
                 data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
+
 
 
 
