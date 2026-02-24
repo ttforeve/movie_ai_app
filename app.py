@@ -37,12 +37,7 @@ def download_video_from_youtube(url):
     return "downloaded_video.mp4"
 
 def generate_content_safe(prompt, media_file=None):
-    models_to_try = [
-    "gemini-1.5-flash", 
-    "gemini-1.5-pro", 
-    "gemini-2.0-flash-exp", 
-    "gemini-pro"
-]
+    models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
     errors = []
     for m in models_to_try:
         try:
@@ -334,3 +329,4 @@ with upload_tab:
                 
 
                 st.info("💡 Developer Note: အသံတကယ်ပြောင်းရန် နောက်ကွယ်တွင် API Key (ဥပမာ- ElevenLabs) ထည့်သွင်းချိတ်ဆက်ရန် လိုအပ်ပါသည်။")
+
