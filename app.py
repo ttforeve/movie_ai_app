@@ -26,24 +26,40 @@ def clean_script_text(raw_text):
 
 def download_audio_from_youtube(url):
     ydl_opts = {
-        'format': 'bestaudio/best', 
-        'postprocessors': [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}], 
+        'format': 'm4a/bestaudio/best', 
         'outtmpl': 'downloaded_audio.%(ext)s', 
         'quiet': True, 
         'noplaylist': True,
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}  # <--- ဒီလိုင်းက IP ပိတ်တာကို ကျော်ပေးမယ့် လျှို့ဝှက်ချက်ပါ
+        'nocheckcertificate': True,
+        'source_address': '0.0.0.0',  # IPv6 ပိတ်တာကို ကျော်ဖို့ IPv4 သုံးခိုင်းခြင်း
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+        },
+        'extractor_args': {'youtube': {'player_client': ['android', 'mweb']}}
     }
+    if os.path.exists("downloaded_audio.m4a"): os.remove("downloaded_audio.m4a")
     if os.path.exists("downloaded_audio.mp3"): os.remove("downloaded_audio.mp3")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: ydl.download([url])
+    
+    # m4a ရလာရင် mp3 လို့ နာမည်ပေးဖို့ (သို့) ရတဲ့ဖိုင်ကို ပြန်ပို့ပေးဖို့
+    for file in os.listdir('.'):
+        if file.startswith('downloaded_audio'):
+            return file
     return "downloaded_audio.mp3"
 
 def download_video_from_youtube(url):
     ydl_opts = {
-        'format': 'best[ext=mp4]', 
+        'format': 'best[ext=mp4]/best', 
         'outtmpl': 'downloaded_video.mp4', 
         'quiet': True, 
         'noplaylist': True,
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}}  # <--- ဒီလိုင်းက IP ပိတ်တာကို ကျော်ပေးမယ့် လျှို့ဝှက်ချက်ပါ
+        'nocheckcertificate': True,
+        'source_address': '0.0.0.0',  # IPv6 ပိတ်တာကို ကျော်ဖို့ IPv4 သုံးခိုင်းခြင်း
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        },
+        'extractor_args': {'youtube': {'player_client': ['android', 'mweb']}}
     }
     if os.path.exists("downloaded_video.mp4"): os.remove("downloaded_video.mp4")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl: ydl.download([url])
@@ -342,5 +358,6 @@ with upload_tab:
                 
 
                 st.info("💡 Developer Note: အသံတကယ်ပြောင်းရန် နောက်ကွယ်တွင် API Key (ဥပမာ- ElevenLabs) ထည့်သွင်းချိတ်ဆက်ရန် လိုအပ်ပါသည်။")
+
 
 
