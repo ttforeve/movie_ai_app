@@ -93,6 +93,7 @@ with tab1:
     col1, col2, col3 = st.columns(3)
     with col1:
         platform = st.selectbox("📱 Platform (ဘယ်မှာတင်မှာလဲ?)", [
+            "Facebook Video (Engagement/Share အသားပေး)", # <--- FB အသစ်ထည့်ထားသည်
             "TikTok / Reels (Hook အသားပေး ဇာတ်ညွှန်းတို)", 
             "YouTube Video (Visual + Audio ဇယားနဲ့ ဇာတ်ညွှန်းအရှည်)", 
             "Voiceover Only (အသံသွင်းဖတ်ရန် စာသားသက်သက်)", 
@@ -104,12 +105,14 @@ with tab1:
             "Funny / Humorous (ဟာသ/ပေါ့ပေါ့ပါးပါး)", 
             "Emotional / Dramatic (အလွမ်း/ခံစားချက်ပါပါ)", 
             "Scary / Thriller (ခြောက်ခြားဖွယ်)",
-            "Casual / Vlog (သူငယ်ချင်းလို ပြောဆိုခြင်း)"
+            "Casual / Vlog (သူငယ်ချင်းလို ပြောဆိုခြင်း)",
+            "Persuasive / Sales (ဆွဲဆောင်သိမ်းသွင်းသော/ရောင်းရေးဝယ်တာ)" # <--- ရောင်းကုန်အတွက် အသစ်
         ])
     with col3:
         audience = st.selectbox("🎯 Target Audience (ပစ်မှတ်)", [
             "General Audience (လူတိုင်းအတွက်)", 
             "Youth / Gen Z (လူငယ်များအတွက်)", 
+            "Middle-aged Adults (လူလတ်ပိုင်းအရွယ်များ)", # <--- လူလတ်ပိုင်း အသစ်ထည့်ထားသည်
             "Professionals (လုပ်ငန်းရှင်/ပညာရှင်များ)"
         ])
 
@@ -131,7 +134,9 @@ with tab1:
     Format Requirements for '{platform}':
     """
     
-    if "TikTok" in platform:
+    if "Facebook" in platform:
+        base_rules += "- Start with a scroll-stopping visual and audio hook.\n- Focus on storytelling and emotional connection to drive shares.\n- End with a question to encourage comments."
+    elif "TikTok" in platform:
         base_rules += "- Start with a 3-second strong HOOK.\n- Keep it fast-paced.\n- End with a Call-to-Action (CTA)."
     elif "YouTube" in platform:
         base_rules += "- Divide into sections (Intro, Body, Outro).\n- Include visual cues in [brackets] and spoken words clearly."
@@ -380,6 +385,7 @@ with tab5:
                 label="📥 Download Recording (WAV)",
                 data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
+
 
 
 
