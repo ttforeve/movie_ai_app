@@ -23,7 +23,6 @@ def clean_script_text(raw_text):
     return '\n\n'.join(lines)
 
 def generate_content_safe(prompt, media_file=None):
-    # Gemini 1.5 Flash က အသံ၊ ရုပ်၊ စာ အကုန်လုပ်နိုင်တဲ့ အမြန်ဆုံး မော်ဒယ်ပါ
     models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
     errors = []
     for m in models_to_try:
@@ -62,7 +61,6 @@ with st.sidebar:
 st.title("🎬 Universal Studio AI")
 st.caption("Scripting • Research • Translation • Audio")
 
-# ဒီအပိုင်း ဖျက်မိသွားလို့ ခုနက Error တက်တာပါ
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "💡 Idea to Script", 
     "📂 Video to Script", 
@@ -93,7 +91,7 @@ with tab1:
     col1, col2, col3 = st.columns(3)
     with col1:
         platform = st.selectbox("📱 Platform (ဘယ်မှာတင်မှာလဲ?)", [
-            "Facebook Video (Engagement/Share အသားပေး)", # <--- FB အသစ်ထည့်ထားသည်
+            "Facebook Video (Engagement/Share အသားပေး)", 
             "TikTok / Reels (Hook အသားပေး ဇာတ်ညွှန်းတို)", 
             "YouTube Video (Visual + Audio ဇယားနဲ့ ဇာတ်ညွှန်းအရှည်)", 
             "Voiceover Only (အသံသွင်းဖတ်ရန် စာသားသက်သက်)", 
@@ -106,13 +104,13 @@ with tab1:
             "Emotional / Dramatic (အလွမ်း/ခံစားချက်ပါပါ)", 
             "Scary / Thriller (ခြောက်ခြားဖွယ်)",
             "Casual / Vlog (သူငယ်ချင်းလို ပြောဆိုခြင်း)",
-            "Persuasive / Sales (ဆွဲဆောင်သိမ်းသွင်းသော/ရောင်းရေးဝယ်တာ)" # <--- ရောင်းကုန်အတွက် အသစ်
+            "Persuasive / Sales (ဆွဲဆောင်သိမ်းသွင်းသော/ရောင်းရေးဝယ်တာ)"
         ])
     with col3:
         audience = st.selectbox("🎯 Target Audience (ပစ်မှတ်)", [
             "General Audience (လူတိုင်းအတွက်)", 
             "Youth / Gen Z (လူငယ်များအတွက်)", 
-            "Middle-aged Adults (လူလတ်ပိုင်းအရွယ်များ)", # <--- လူလတ်ပိုင်း အသစ်ထည့်ထားသည်
+            "Middle-aged Adults (လူလတ်ပိုင်းအရွယ်များ)",
             "Professionals (လုပ်ငန်းရှင်/ပညာရှင်များ)"
         ])
 
@@ -192,6 +190,23 @@ with tab1:
         elif not api_key:
             st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
+    # --- 3. (ဒီအပိုင်း ပျောက်နေလို့ အလုပ်မလုပ်တာပါ!) ဇာတ်ညွှန်း ထွက်လာရင် ပြပေးမည့် UI ---
+    if st.session_state.final_script:
+        st.success("✅ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!")
+        
+        words = len(st.session_state.final_script.split())
+        read_time = max(1, round(words / 130))
+        
+        met_c1, met_c2 = st.columns(2)
+        met_c1.metric("📝 စာလုံးရေ (Word Count)", f"~{words} words")
+        met_c2.metric("⏱️ ခန့်မှန်း ဖတ်ချိန် (Reading Time)", f"~{read_time} min")
+
+        script_result = st.text_area("Final Script:", value=st.session_state.final_script, height=400)
+        
+        if st.button("📲 Teleprompter ထဲသို့ တိုက်ရိုက်ထည့်ရန် (Send to Tab 5)", type="primary"):
+            st.session_state.tele_text_input = clean_script_text(script_result)
+            st.success("✅ Tab 5: Audio Studio အောက်က Teleprompter ထဲကို စာသားတွေ ရောက်သွားပါပြီ! သွားရောက် ဖတ်ရှုနိုင်ပါပြီ။")
+
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
     st.header("📂 Local Video -> Script")
@@ -210,7 +225,7 @@ with tab2:
                 st.text_area("Result:", value=res, height=400)
                 if os.path.exists(tpath): os.remove(tpath)
 
-# --- TAB 3: AUDIO TO SCRIPT (NEW FEATURE) ---
+# --- TAB 3: AUDIO TO SCRIPT ---
 with tab3:
     st.header("🎵 Audio to Script (AI Listening)")
     st.info("သင့်စက်ထဲက ဒေါင်းလုဒ်ဆွဲထားသော MP3, M4A အသံဖိုင်များကို တင်ပြီး ဇာတ်ညွှန်း သို့မဟုတ် အနှစ်ချုပ် ပြန်ထုတ်ပါ။")
@@ -231,21 +246,17 @@ with tab3:
     if audio_file and st.button("✨ Generate Script from Audio", type="primary"):
         if api_key:
             with st.spinner("AI က အသံကို သေချာ နားထောင်ပြီး စဉ်းစားနေပါတယ်..."):
-                # 1. Save uploaded file to temp
                 file_ext = audio_file.name.split('.')[-1]
                 with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_ext}") as tmp:
                     tmp.write(audio_file.getvalue())
                     tpath = tmp.name
                 
-                # 2. Upload to Gemini
                 myfile = genai.upload_file(tpath)
                 
-                # 3. Wait for Gemini to process the audio
                 while myfile.state.name == "PROCESSING":
                     time.sleep(2)
                     myfile = genai.get_file(myfile.name)
                 
-                # 4. Prepare the dynamic prompt
                 base_prompts = {
                     "ဇာတ်ကြောင်းပြော (Narration Script) 🎙️": "Listen to this audio and convert it into a highly engaging, emotional, and storytelling-style script in Burmese. Write a flowing Narration that captures the viewer's heart. Do not just list facts.",
                     "အနှစ်ချုပ် (Detailed Summary) 📝": "Listen to this audio and provide a very detailed summary of the main points in Burmese. Use structured bullet points.",
@@ -257,12 +268,10 @@ with tab3:
                 if custom_instructions:
                     master_prompt += f"ADDITIONAL INSTRUCTIONS: {custom_instructions}"
                 
-                # 5. Generate Content
                 res = generate_content_safe(master_prompt, myfile)
                 st.subheader("✅ AI ၏ ရလဒ်")
                 st.text_area("Copy this result:", value=res, height=400)
                 
-                # 6. Cleanup
                 if os.path.exists(tpath): os.remove(tpath)
         else:
             st.error("API Key ထည့်ပါဦး မိတ်ဆွေ။")
@@ -315,7 +324,6 @@ with tab4:
 with tab5:
     st.header("🎧 Audio Studio Hub")
     
-    # 📤 Voice Changer ကို ဖြုတ်လိုက်ပြီး Tab ၂ ခုတည်း ထားပါမယ်
     tts_tab, tele_tab = st.tabs(["🗣️ AI TTS Generator", "🎤 Teleprompter & Recorder"])
 
     with tts_tab:
@@ -332,7 +340,6 @@ with tab5:
         if st.button("🔊 Generate AI Voice"):
             if text_input.strip():
                 with st.spinner("Generating High Quality Voice..."):
-                    # Punctuation Hack: အသံအဖျား မပြတ်အောင် စာကြောင်းအဆုံးမှာ Space နဲ့ ပုဒ်မ ခံပေးခြင်း
                     processed_text = text_input.replace("။", "။ . ").replace("\n", " . \n")
                     if not processed_text.endswith(". "):
                         processed_text += " . "
@@ -408,10 +415,3 @@ with tab5:
                 label="📥 Download Recording (WAV)",
                 data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
-
-
-
-
-
-
-
