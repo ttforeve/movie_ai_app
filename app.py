@@ -127,7 +127,8 @@ with tab1:
 
     # --- Prompt အကြမ်းထည် တည်ဆောက်ခြင်း ---
     base_rules = f"""
-    Language: Burmese (မြန်မာဘာသာဖြင့် ရေးပါ။)
+    CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language (မြန်မာဘာသာဖြင့်သာ ရေးပါ). 
+    Do NOT use English for headings, visual cues, action lines, or scene descriptions. Everything must be perfectly translated to Burmese.
     Topic: {topic}
     Tone/Vibe: {tone}
     Target Audience: {audience}
@@ -151,7 +152,8 @@ with tab1:
             with st.spinner("Brainstorming Outline..."):
                 prompt = f"""
                 You are an expert Content Strategist. Create a highly engaging 5-point OUTLINE for a {platform} about '{topic}'.
-                Tone: {tone}. Target Audience: {audience}. Language: Burmese.
+                Tone: {tone}. Target Audience: {audience}.
+                CRITICAL INSTRUCTION: The ENTIRE output (including Headings, Key Ideas, Visual Descriptions, and Examples) MUST be 100% in Burmese Language (မြန်မာဘာသာ). NO English words allowed.
                 DO NOT write the full script. Just provide the bullet points and key ideas.
                 """
                 st.session_state.outline_text = generate_content_safe(prompt)
@@ -161,7 +163,6 @@ with tab1:
         elif not api_key:
             st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
-    # Outline ထွက်လာရင် ပြပေးမည့်အပိုင်း (ဒီနေရာမှာ ပြဿနာကို ရှင်းထားပါတယ်)
     if st.session_state.outline_text:
         with st.expander("📑 Your Script Outline (ဒီခေါင်းစဉ်လေးတွေ အဆင်ပြေလား စစ်ကြည့်ပါ)", expanded=True):
             st.write(st.session_state.outline_text)
@@ -171,9 +172,25 @@ with tab1:
                         prompt = base_rules + f"\n\nBased on this OUTLINE, write the full engaging script:\n{st.session_state.outline_text}"
                         st.session_state.final_script = generate_content_safe(prompt)
                         st.session_state.outline_text = "" # Script ထွက်လာရင် Outline ကို အလိုလို ဖျောက်ပေးမည်
-                        st.rerun() # <--- UI ကို ချက်ချင်း Refresh လုပ်ပေးမည့် အသက်သွေးကြော
+                        st.rerun() 
                 else:
                     st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
+
+    # --- 2. ဇာတ်ညွှန်း အပြည့်ရေးသည့် အပိုင်း (Direct) ---
+    if gen_script:
+        if api_key and topic:
+            with st.spinner("Writing Professional Script..."):
+                prompt = f"""
+                You are an expert Scriptwriter. Write a FULL, highly engaging script.
+                {base_rules}
+                Make it captivating and creative! Remember, 100% in Burmese Language.
+                """
+                st.session_state.final_script = generate_content_safe(prompt)
+                st.session_state.outline_text = "" # Clear outline
+        elif not topic:
+            st.warning("⚠️ ခေါင်းစဉ် (Topic) အရင် ရိုက်ထည့်ပါဦး။")
+        elif not api_key:
+            st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
@@ -391,6 +408,7 @@ with tab5:
                 label="📥 Download Recording (WAV)",
                 data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
+
 
 
 
