@@ -74,14 +74,46 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # --- TAB 1: IDEA TO SCRIPT ---
 with tab1:
     st.header("💡 Idea -> Script")
-    topic = st.text_input("ခေါင်းစဉ် (Topic)", "ပုဂံဘုရားများ")
-    style = st.selectbox("Style", ["Documentary (မှတ်တမ်း)", "Vlog (ပေါ့ပါး)", "Cinematic (ရုပ်ရှင်ဆန်ဆန်)"])
+    
+    # value ကို အလွတ်ထားပြီး၊ placeholder နဲ့ အရိပ်ပြစာသားလေး ပြောင်းထည့်လိုက်ပါပြီ
+    topic = st.text_input(
+        "ခေါင်းစဉ် (Topic)", 
+        value="", 
+        placeholder="ဥပမာ - ငယ်ချစ် (အလွမ်း၊ ကဗျာဆန်ဆန်) သို့မဟုတ် ပုဂံဘုရားများ သမိုင်း"
+    )
+    
+    style = st.selectbox("Style (ထုတ်ချင်သော ပုံစံ)", [
+        "Voiceover သီးသန့် (အသံသွင်းဖတ်ရန် စာသားသက်သက်) 🎙️", 
+        "Cinematic ဇာတ်ညွှန်းအပြည့် (ရိုက်ကွင်း၊ အလင်းအမှောင်၊ အသံများပါဝင်သည်) 🎬",
+        "Documentary ဇာတ်ညွှန်းအပြည့် (မှတ်တမ်းရုပ်ရှင် ပုံစံ) 🎥", 
+        "Vlog (ပေါ့ပါးသော အစီအစဉ်မှူး ပြောစကား) 📱"
+    ])
+    
     if st.button("Generate Script"):
-        if api_key:
+        if api_key and topic: # Topic ထည့်ထားမှ အလုပ်လုပ်မယ်
             with st.spinner("Writing..."):
-                prompt = f"Write a {style} script about {topic} in Burmese. Include Scene descriptions and Narration."
+                if "Voiceover သီးသန့်" in style:
+                    prompt = f"""
+                    ROLE: You are an expert Voiceover Scriptwriter.
+                    TASK: Write a highly engaging, emotional voiceover script about '{topic}' in Burmese.
+                    CRITICAL RULES:
+                    1. ONLY write the spoken words (the narration). 
+                    2. DO NOT include any scene descriptions, camera angles, background music cues, or [brackets].
+                    3. Write it in paragraphs, ready to be read aloud directly by a voice actor.
+                    """
+                elif "Cinematic" in style:
+                    prompt = f"Write a Cinematic movie script about {topic} in Burmese. Include Scene descriptions, camera angles, and Narration."
+                elif "Documentary" in style:
+                    prompt = f"Write a Documentary script about {topic} in Burmese. Include visual descriptions, B-roll ideas, and Narration."
+                else:
+                    prompt = f"Write a casual Vlog script about {topic} in Burmese. Include what the host is doing and saying."
+
                 res = generate_content_safe(prompt)
                 st.text_area("Result:", value=res, height=400)
+        elif not topic:
+            st.warning("⚠️ ခေါင်းစဉ် (Topic) အရင် ရိုက်ထည့်ပါဦး မိတ်ဆွေ။")
+        elif not api_key:
+            st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
@@ -302,3 +334,4 @@ with tab5:
                     time.sleep(2)
                     st.success("Voice transformation successful! 🎉")
                     st.info("💡 Developer Note: အသံတကယ်ပြောင်းရန် နောက်ကွယ်တွင် API Key (ဥပမာ- ElevenLabs) ထည့်သွင်းချိတ်ဆက်ရန် လိုအပ်ပါသည်။")
+
