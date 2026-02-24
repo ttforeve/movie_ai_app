@@ -238,31 +238,46 @@ with tab4:
 with tab5:
     st.header("🎧 Audio Studio Hub")
     
-    tts_tab, tele_tab, upload_tab = st.tabs(["🗣️ AI TTS Generator", "🎤 Teleprompter Recorder", "📤 Voice Changer"])
+    # 📤 Voice Changer ကို ဖြုတ်လိုက်ပြီး Tab ၂ ခုတည်း ထားပါမယ်
+    tts_tab, tele_tab = st.tabs(["🗣️ AI TTS Generator", "🎤 Teleprompter & Recorder"])
 
     with tts_tab:
-        st.subheader("AI Voice Generation")
-        text_input = st.text_area("Text to read:", height=150, key="tts_text_area")
+        st.subheader("AI Voice Generation (High Quality)")
+        st.info("💡 Tip: မြန်မာအသံများ (သီဟ၊ နီလာ) သုံးရာတွင် အသံအဖျားမပြတ်စေရန် RVC အတွက် အထူးပြင်ဆင်ပေးထားပါသည်။")
+        
+        text_input = st.text_area("Text to read:", height=150, key="tts_text_area", placeholder="ဒီနေရာမှာ ဖတ်ခိုင်းမယ့် စာသားများကို ရိုက်ထည့်ပါ...")
+        
         c1, c2, c3 = st.columns(3)
         with c1: voice = st.selectbox("Voice", ["my-MM-NilarNeural", "my-MM-ThihaNeural", "en-US-JennyNeural"])
         with c2: rate = st.slider("Speed", -50, 50, 0, format="%d%%", key="tts_rate")
         with c3: pitch = st.slider("Pitch", -50, 50, 0, format="%dHz", key="tts_pitch")
         
         if st.button("🔊 Generate AI Voice"):
-            if text_input:
-                async def gen_audio():
-                    communicate = edge_tts.Communicate(text_input, voice, rate=f"{rate:+d}%", pitch=f"{pitch:+d}Hz")
-                    await communicate.save("ai_voice.mp3")
-                asyncio.run(gen_audio())
-                st.success("Generated Successfully!")
-                st.audio("ai_voice.mp3")
-                with open("ai_voice.mp3", "rb") as f: st.download_button("Download MP3", f, "ai_voice.mp3")
+            if text_input.strip():
+                with st.spinner("Generating High Quality Voice..."):
+                    # Punctuation Hack: အသံအဖျား မပြတ်အောင် စာကြောင်းအဆုံးမှာ Space နဲ့ ပုဒ်မ ခံပေးခြင်း
+                    processed_text = text_input.replace("။", "။ . ").replace("\n", " . \n")
+                    if not processed_text.endswith(". "):
+                        processed_text += " . "
+
+                    async def gen_audio():
+                        communicate = edge_tts.Communicate(processed_text, voice, rate=f"{rate:+d}%", pitch=f"{pitch:+d}Hz")
+                        await communicate.save("ai_voice.mp3")
+                    
+                    asyncio.run(gen_audio())
+                    
+                    st.success("✅ Generated Successfully!")
+                    st.audio("ai_voice.mp3")
+                    with open("ai_voice.mp3", "rb") as f: 
+                        st.download_button("📥 Download MP3", f, "ai_voice.mp3")
+            else:
+                st.warning("⚠️ ကျေးဇူးပြု၍ ဖတ်ခိုင်းမည့် စာသားကို အရင်ရိုက်ထည့်ပါ။")
 
     with tele_tab:
         st.subheader("Teleprompter & Voice Recorder")
         st.info("💡 Tip: စာသားအရမ်းမြန်နေရင် 'Duration' ကို တိုးပေးပါ။ ဖတ်ရင်းရပ်ချင်ရင် စာသားပေါ် Mouse တင်ထားလိုက်ပါ။")
 
-        tele_text = st.text_area("Script for Teleprompter:", height=250, placeholder="Paste your script here...", key="tele_text_input")
+        tele_text = st.text_area("Script for Teleprompter:", height=200, placeholder="Paste your script here...", key="tele_text_input")
 
         col_t1, col_t2 = st.columns(2)
         with col_t1:
@@ -273,13 +288,14 @@ with tab5:
         if tele_text:
             html_code = f"""
             <div class="teleprompter-container" style="
-                height: 300px; overflow: hidden; background-color: #000000; color: #FFFFFF; 
-                font-size: {font_size}px; line-height: 1.5; font-family: Arial, sans-serif;
-                text-align: center; border-radius: 10px; padding: 20px; border: 4px solid #333;
-                margin-bottom: 20px; position: relative;
+                height: 350px; overflow: hidden; background-color: #1E1E1E; color: #FFFFFF; 
+                font-size: {font_size}px; line-height: 1.6; font-family: 'Pyidaungsu', Arial, sans-serif;
+                text-align: center; border-radius: 12px; padding: 30px; border: 3px solid #444;
+                margin-bottom: 20px; position: relative; box-shadow: inset 0px 0px 15px rgba(0,0,0,0.8);
             ">
                 <div class="scrolling-content" style="
                     display: inline-block;
+                    text-shadow: 2px 2px 4px #000000;
                     animation: marqueeUp {scroll_duration}s linear infinite; 
                 ">
                     {tele_text.replace("\n", "<br><br>")}
@@ -294,44 +310,26 @@ with tab5:
             .scrolling-content:hover {{
                 animation-play-state: paused;
                 cursor: pointer;
+                color: #FFD700;
             }}
             </style>
             """
             st.markdown(html_code, unsafe_allow_html=True)
         else:
-            st.warning("Please enter text above to start.")
+            st.warning("☝️ Please enter script above to start the teleprompter.")
 
         st.write("---")
-        st.write("#### 🎙️ Record Your Voice")
+        st.write("#### 🎙️ Record Your Voice (For RVC Applio)")
+        st.markdown("ဒီနေရာမှာ သင့်အသံကို တိုက်ရိုက် Record ဖမ်းပြီး RVC (Applio) ထဲထည့်ရန် Download ဆွဲယူနိုင်ပါသည်။")
         
         wav_audio_data = st_audiorec() 
 
         if wav_audio_data is not None:
-            st.success("Recording saved successfully!")
+            st.success("✅ Recording saved successfully!")
             st.audio(wav_audio_data, format='audio/wav')
             st.download_button(
-                label="Download Recording (WAV)",
-                data=wav_audio_data, file_name="teleprompter_rec.wav", mime="audio/wav"
+                label="📥 Download Recording (WAV)",
+                data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
-            
-    with upload_tab:
-        st.subheader("🎭 Voice Changer (Emotion Preserved)")
-        st.markdown("သင်သွင်းထားသော အသံဖိုင်ကို တင်ပါ။ လေယူလေသိမ်း၊ ခံစားချက် မပျက်ဘဲ အခြားဇာတ်ကောင်အသံသို့ ပြောင်းလဲပေးပါမည်။")
 
-        source_audio = st.file_uploader("Choose your voice recording...", type=['mp3', 'wav', 'm4a'])
-
-        target_voice = st.selectbox(
-            "Select Target Voice Character:",
-            ["Sweet Girl (Love Diary)", "Deep Male Narrator (Mood Master)", "Old Storyteller", "Creepy Whisper (Horror)"]
-        )
-
-        if source_audio is not None:
-            st.write("**Your Original Audio:**")
-            st.audio(source_audio)
-            if st.button("🎙️ Transform Voice"):
-                with st.spinner(f"Converting your voice to '{target_voice}'... Please wait."):
-                    import time
-                    time.sleep(2)
-                    st.success("Voice transformation successful! 🎉")
-                    st.info("💡 Developer Note: အသံတကယ်ပြောင်းရန် နောက်ကွယ်တွင် API Key (ဥပမာ- ElevenLabs) ထည့်သွင်းချိတ်ဆက်ရန် လိုအပ်ပါသည်။")
 
