@@ -17,10 +17,45 @@ st.set_page_config(page_title="Universal Studio AI", page_icon="🎬", layout="w
 # 2. HELPER FUNCTIONS
 # ==========================================
 def clean_script_text(raw_text):
-    text = re.sub(r'\(.*?\)', '', raw_text)
-    text = re.sub(r'\[.*?\]', '', text)
-    lines = [line.strip() for line in text.split('\n') if line.strip()]
-    return '\n\n'.join(lines)
+    # စာသားသီးသန့် ဆွဲထုတ်မည့် Smart Filter
+    spoken_lines = []
+    is_speaking = False
+    
+    # တကယ်လို့ "ပြောသူ" ဆိုတဲ့ စကားလုံး မပါရင် (ဥပမာ- Voiceover သီးသန့်ရွေးထားရင်)
+    if not re.search(r'\*\*(ပြောသူ|Voiceover|ပြောဆိုသူ|နောက်ခံစကားပြော)', raw_text, re.IGNORECASE):
+        text = re.sub(r'\(.*?\)', '', raw_text)
+        text = re.sub(r'\[.*?\]', '', text)
+        text = re.sub(r'\*\*.*?\*\*', '', text) # Bold စာလုံးတွေဖျက်မည်
+        lines = [line.strip() for line in text.split('\n') if line.strip() and not line.startswith(('-','*'))]
+        return '\n\n'.join(lines)
+
+    # ဇာတ်ညွှန်းအပြည့်အစုံ ဖြစ်နေခဲ့ရင်
+    for line in raw_text.split('\n'):
+        line = line.strip()
+        if not line:
+            continue
+            
+        # မြင်ကွင်း၊ အသံ၊ စာသား၊ လေယူလေသိမ်း စတဲ့ ခေါင်းစဉ်တွေလာရင် ဖြတ်ချမယ်
+        if any(line.startswith(x) for x in ['---', '***', '###']) or \
+           any(x in line for x in ['**မြင်ကွင်း', '**အသံ', '**စာသား', '**ပစ်မှတ်', '**လေယူ', '**ဗီဒီယို']):
+            is_speaking = False
+            
+        # "ပြောသူ" ဆိုတဲ့ နေရာရောက်ရင် စတင် ကူးယူမယ်
+        if re.search(r'\*\*(ပြောသူ|Voiceover|ပြောဆိုသူ|နောက်ခံစကားပြော).*?\*\*', line, re.IGNORECASE):
+            is_speaking = True
+            # ခေါင်းစဉ်နဲ့ တစ်တန်းတည်း ရေးထားခဲ့ရင် ဆွဲထုတ်မယ်
+            inline_text = re.sub(r'\*\*(ပြောသူ|Voiceover|ပြောဆိုသူ|နောက်ခံစကားပြော).*?\*\*\s*[:\-]?\s*', '', line, flags=re.IGNORECASE)
+            if inline_text:
+                spoken_lines.append(inline_text.strip(' "”\''))
+            continue
+            
+        # အသံထွက်ဖတ်ရမည့် စာကြောင်းဖြစ်ရင် မျက်တောင်ကွင်းတွေဖယ်ပြီး သိမ်းမယ်
+        if is_speaking:
+            clean_line = line.strip(' "”\'')
+            if clean_line:
+                spoken_lines.append(clean_line)
+                
+    return '\n\n'.join(spoken_lines)
 
 def generate_content_safe(prompt, media_file=None):
     models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
@@ -76,7 +111,6 @@ with tab1:
     st.header("💡 Pro Scriptwriter Hub")
     st.caption("Platform အလိုက်၊ လေသံအလိုက် Professional ဇာတ်ညွှန်းများ ဖန်တီးပါ")
     
-    # Session State များ ကြိုတင်သတ်မှတ်ခြင်း (Memory သိမ်းထားရန်)
     if 'outline_text' not in st.session_state:
         st.session_state.outline_text = ""
     if 'final_script' not in st.session_state:
@@ -87,7 +121,6 @@ with tab1:
         placeholder="ဥပမာ - AI နည်းပညာရဲ့ အနာဂတ်, ပုဂံဘုရားများ သမိုင်း..."
     )
     
-    # --- Advanced Controls ---
     col1, col2, col3 = st.columns(3)
     with col1:
         platform = st.selectbox("📱 Platform (ဘယ်မှာတင်မှာလဲ?)", [
@@ -116,14 +149,12 @@ with tab1:
 
     st.write("---")
     
-    # --- Action Buttons ---
     btn_col1, btn_col2 = st.columns(2)
     with btn_col1:
         gen_outline = st.button("📑 အဆင့် ၁: ခေါင်းစဉ်ခွဲများ (Outline) အရင်ထုတ်ရန်", use_container_width=True)
     with btn_col2:
         gen_script = st.button("🚀 အဆင့် ၂: ဇာတ်ညွှန်း အပြည့်အစုံ တန်းရေးရန်", type="primary", use_container_width=True)
 
-    # --- Prompt အကြမ်းထည် တည်ဆောက်ခြင်း ---
     base_rules = f"""
     CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language (မြန်မာဘာသာဖြင့်သာ ရေးပါ). 
     Do NOT use English for headings, visual cues, action lines, or scene descriptions. Everything must be perfectly translated to Burmese.
@@ -144,7 +175,6 @@ with tab1:
     elif "Cinematic" in platform:
         base_rules += "- Write like a movie script. Include Scene Headings, Action lines, and Character dialogue/Voiceover."
 
-    # --- 1. Outline ထုတ်သည့် အပိုင်း ---
     if gen_outline:
         if api_key and topic:
             with st.spinner("Brainstorming Outline..."):
@@ -155,7 +185,7 @@ with tab1:
                 DO NOT write the full script. Just provide the bullet points and key ideas.
                 """
                 st.session_state.outline_text = generate_content_safe(prompt)
-                st.session_state.final_script = "" # Clear previous script
+                st.session_state.final_script = "" 
         elif not topic:
             st.warning("⚠️ ခေါင်းစဉ် (Topic) အရင် ရိုက်ထည့်ပါဦး။")
         elif not api_key:
@@ -169,12 +199,11 @@ with tab1:
                     with st.spinner("Writing Full Script based on outline... (ခဏစောင့်ပါ)"):
                         prompt = base_rules + f"\n\nBased on this OUTLINE, write the full engaging script:\n{st.session_state.outline_text}"
                         st.session_state.final_script = generate_content_safe(prompt)
-                        st.session_state.outline_text = "" # Script ထွက်လာရင် Outline ကို အလိုလို ဖျောက်ပေးမည်
+                        st.session_state.outline_text = "" 
                         st.rerun() 
                 else:
                     st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
-    # --- 2. ဇာတ်ညွှန်း အပြည့်ရေးသည့် အပိုင်း (Direct) ---
     if gen_script:
         if api_key and topic:
             with st.spinner("Writing Professional Script..."):
@@ -184,13 +213,12 @@ with tab1:
                 Make it captivating and creative! Remember, 100% in Burmese Language.
                 """
                 st.session_state.final_script = generate_content_safe(prompt)
-                st.session_state.outline_text = "" # Clear outline
+                st.session_state.outline_text = "" 
         elif not topic:
             st.warning("⚠️ ခေါင်းစဉ် (Topic) အရင် ရိုက်ထည့်ပါဦး။")
         elif not api_key:
             st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
-    # --- 3. (ဒီအပိုင်း ပျောက်နေလို့ အလုပ်မလုပ်တာပါ!) ဇာတ်ညွှန်း ထွက်လာရင် ပြပေးမည့် UI ---
     if st.session_state.final_script:
         st.success("✅ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!")
         
@@ -203,9 +231,10 @@ with tab1:
 
         script_result = st.text_area("Final Script:", value=st.session_state.final_script, height=400)
         
-        if st.button("📲 Teleprompter ထဲသို့ တိုက်ရိုက်ထည့်ရန် (Send to Tab 5)", type="primary"):
-            st.session_state.tele_text_input = clean_script_text(script_result)
-            st.success("✅ Tab 5: Audio Studio အောက်က Teleprompter ထဲကို စာသားတွေ ရောက်သွားပါပြီ! သွားရောက် ဖတ်ရှုနိုင်ပါပြီ။")
+        # <<< ပြောင်းလဲလိုက်သော ခလုတ်နှင့် တိုက်ရိုက်ပို့မည့် နေရာ >>>
+        if st.button("📲 AI TTS (အသံထွက်ဖတ်ပေးမည့်စက်) ထဲသို့ တိုက်ရိုက်ထည့်ရန်", type="primary"):
+            st.session_state.tts_text_area = clean_script_text(script_result)
+            st.success("✅ Tab 5: Audio Studio အောက်က AI TTS Generator ထဲကို အသံထွက်ဖတ်ရမည့် စာသားသီးသန့် ရောက်သွားပါပြီ! သွားရောက် အသံထုတ်နိုင်ပါပြီ။")
 
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
@@ -330,7 +359,8 @@ with tab5:
         st.subheader("AI Voice Generation (High Quality)")
         st.info("💡 Tip: မြန်မာအသံများ (သီဟ၊ နီလာ) သုံးရာတွင် အသံအဖျားမပြတ်စေရန် RVC အတွက် အထူးပြင်ဆင်ပေးထားပါသည်။")
         
-        text_input = st.text_area("Text to read:", height=150, key="tts_text_area", placeholder="ဒီနေရာမှာ ဖတ်ခိုင်းမယ့် စာသားများကို ရိုက်ထည့်ပါ...")
+        # <<< Session State နဲ့ ချိတ်ဆက်ပြီး TTS Box ထဲကို အလိုလို ရောက်လာမယ့်နေရာ >>>
+        text_input = st.text_area("Text to read:", height=150, key="tts_text_area", placeholder="ဒီနေရာမှာ ဖတ်ခိုင်းမယ့် စာသားများကို ရိုက်ထည့်ပါ...", value=st.session_state.get("tts_text_area", ""))
         
         c1, c2, c3 = st.columns(3)
         with c1: voice = st.selectbox("Voice", ["my-MM-NilarNeural", "my-MM-ThihaNeural", "en-US-JennyNeural"])
