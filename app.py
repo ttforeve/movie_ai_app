@@ -166,7 +166,11 @@ with tab1:
         
         col1, col2, col3, col4 = st.columns(4)
         with col1: 
-            mm_platform = st.selectbox("📱 Platform", ["Facebook Video", "TikTok / Reels", "YouTube Video", "Voiceover Only"], key="mm_plat")
+            mm_platform = st.selectbox("📱 Video Format (ဗီဒီယိုပုံစံ)", [
+                "📱 Short Video (Reels/TikTok/Shorts) - ၁ မိနစ်ခွဲအောက်", 
+                "📺 Long Video (Facebook/YouTube) - ၁ မိနစ်ခွဲအထက်", 
+                "🎙️ Voiceover Script - အသံဖတ်ရန် စာသားသီးသန့်"
+            ], key="mm_plat")
         with col2: 
             mm_tone = st.selectbox("🎭 Tone / အမျိုးအစား", [
                 "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful / Inspirational)",
@@ -240,6 +244,7 @@ with tab1:
         with mm_b2: gen_mm_script = st.button(direct_btn_text, type="primary", use_container_width=True, key="btn_mm_script")
 
         # 💡 အခြေခံ ညွှန်ကြားချက်များ
+        # 💡 အခြေခံ ညွှန်ကြားချက်များ
         mm_rules = f"""
         CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language. 
         VERY IMPORTANT: You MUST write the output as a {type_keyword}. 
@@ -249,6 +254,14 @@ with tab1:
         
         Topic: {mm_topic}. Tone: {mm_tone}. Audience: {mm_audience}. 
         """
+        
+        # 💡 Video Format အလိုက် အရှည်အိုတို ထိန်းချုပ်ခြင်း
+        if "Short Video" in mm_platform:
+            mm_rules += "FORMAT RULE: This is a SHORT-FORM vertical video (Under 60-90 seconds). Keep it fast-paced, concise, and start with a massive 3-second HOOK. Limit word count to around 150-200 words.\n"
+        elif "Long Video" in mm_platform:
+            mm_rules += "FORMAT RULE: This is a LONG-FORM video (Over 2-3 minutes). Write a detailed, deeply engaging script with a proper Intro, Body, and Outro. Expand on the ideas thoroughly.\n"
+        elif "Voiceover" in mm_platform:
+            mm_rules += "FORMAT RULE: Output ONLY the spoken words. DO NOT include any visual cues, camera directions, or sound effects brackets. Just pure flowing paragraphs for a voice actor to read.\n"
         
         # 💡 နောက်ကွယ်မှ အတိအကျ ပုံသွင်းမည့် လျှို့ဝှက် Prompts များ
         if "Soulful" in mm_tone:
@@ -504,101 +517,74 @@ with tab4:
             else:
                 st.warning("ဘာသာပြန်ချင်တဲ့ စာကို Paste လုပ်ပါ။")
 
+# ==========================================
 # --- TAB 5: AUDIO STUDIO ---
+# ==========================================
 with tab5:
     st.header("🎧 Audio Studio Hub")
+    st.subheader("AI Voice Generation (High Quality)")
+    st.info("💡 Tip: ကာရိုက်တာ (Character) ကို ရွေးလိုက်တာနဲ့ အသံနဲ့လိုက်ဖက်မယ့် Speed နဲ့ Pitch ကို အလိုလို ချိန်ညှိပေးပါလိမ့်မယ်။ မိမိစိတ်ကြိုက် ထပ်ပြင်လို့လည်း ရပါတယ်။")
     
-    tts_tab, tele_tab = st.tabs(["🗣️ AI TTS Generator", "🎤 Teleprompter & Recorder"])
+    # Text input box
+    text_input = st.text_area("Text to read:", height=200, key="tts_text_area", placeholder="ဒီနေရာမှာ ဖတ်ခိုင်းမယ့် စာသားများကို ရိုက်ထည့်ပါ...", value=st.session_state.get("tts_text_area", ""))
+    
+    # 🎭 Voice Presets Directory (ကာရိုက်တာအလိုက် အသံ၊ အမြန်နှုန်း၊ Pitch သတ်မှတ်ချက်များ)
+    VOICE_PRESETS = {
+        "🇲🇲 မြန်မာအမျိုးသမီး (Nilar)": {"voice": "my-MM-NilarNeural", "rate": 0, "pitch": 0},
+        "🇲🇲 မြန်မာအမျိုးသား (Thiha)": {"voice": "my-MM-ThihaNeural", "rate": 0, "pitch": 0},
+        "🇺🇸 Pro Narrator (Documentary)": {"voice": "en-US-ChristopherNeural", "rate": -5, "pitch": -5},
+        "🇺🇸 Cute Baby / Toddler": {"voice": "en-US-AnaNeural", "rate": -10, "pitch": 30},
+        "🇺🇸 Young Boy": {"voice": "en-US-GuyNeural", "rate": 5, "pitch": 25},
+        "🇺🇸 Young Girl": {"voice": "en-US-AriaNeural", "rate": 5, "pitch": 15},
+        "🇺🇸 Adult Man": {"voice": "en-US-SteffanNeural", "rate": 0, "pitch": 0},
+        "🇺🇸 Adult Woman": {"voice": "en-US-JennyNeural", "rate": 0, "pitch": 0},
+        "🇺🇸 Old / Wise Man": {"voice": "en-GB-RyanNeural", "rate": -15, "pitch": -20},
+        "🇺🇸 Old Witch (Creepy)": {"voice": "en-GB-SoniaNeural", "rate": -10, "pitch": 25}
+    }
 
-    with tts_tab:
-        st.subheader("AI Voice Generation (High Quality)")
-        st.info("💡 Tip: မြန်မာအသံများ (သီဟ၊ နီလာ) သုံးရာတွင် အသံအဖျားမပြတ်စေရန် RVC အတွက် အထူးပြင်ဆင်ပေးထားပါသည်။")
-        
-        # <<< Session State နဲ့ ချိတ်ဆက်ပြီး TTS Box ထဲကို အလိုလို ရောက်လာမယ့်နေရာ >>>
-        text_input = st.text_area("Text to read:", height=150, key="tts_text_area", placeholder="ဒီနေရာမှာ ဖတ်ခိုင်းမယ့် စာသားများကို ရိုက်ထည့်ပါ...", value=st.session_state.get("tts_text_area", ""))
-        
-        c1, c2, c3 = st.columns(3)
-        with c1: voice = st.selectbox("Voice", ["my-MM-NilarNeural", "my-MM-ThihaNeural", "en-US-JennyNeural"])
-        with c2: rate = st.slider("Speed", -50, 50, 0, format="%d%%", key="tts_rate")
-        with c3: pitch = st.slider("Pitch", -50, 50, 0, format="%dHz", key="tts_pitch")
-        
-        if st.button("🔊 Generate AI Voice"):
-            if text_input.strip():
-                with st.spinner("Generating High Quality Voice..."):
-                    processed_text = text_input.replace("။", "။ . ").replace("\n", " . \n")
-                    if not processed_text.endswith(". "):
-                        processed_text += " . "
+    # Session State ကို အသုံးပြု၍ Slider များကို အလိုအလျောက် ပြောင်းလဲပေးခြင်း
+    if "prev_character" not in st.session_state:
+        st.session_state.prev_character = "🇲🇲 မြန်မာအမျိုးသမီး (Nilar)"
+        st.session_state.tts_rate = 0
+        st.session_state.tts_pitch = 0
 
-                    async def gen_audio():
-                        communicate = edge_tts.Communicate(processed_text, voice, rate=f"{rate:+d}%", pitch=f"{pitch:+d}Hz")
-                        await communicate.save("ai_voice.mp3")
-                    
-                    asyncio.run(gen_audio())
-                    
-                    st.success("✅ Generated Successfully!")
-                    st.audio("ai_voice.mp3")
-                    with open("ai_voice.mp3", "rb") as f: 
-                        st.download_button("📥 Download MP3", f, "ai_voice.mp3")
-            else:
-                st.warning("⚠️ ကျေးဇူးပြု၍ ဖတ်ခိုင်းမည့် စာသားကို အရင်ရိုက်ထည့်ပါ။")
+    selected_character = st.selectbox("🎭 Voice Character", list(VOICE_PRESETS.keys()))
 
-    with tele_tab:
-        st.subheader("Teleprompter & Voice Recorder")
-        st.info("💡 Tip: စာသားအရမ်းမြန်နေရင် 'Duration' ကို တိုးပေးပါ။ ဖတ်ရင်းရပ်ချင်ရင် စာသားပေါ် Mouse တင်ထားလိုက်ပါ။")
+    # ကာရိုက်တာ ပြောင်းသွားခဲ့လျှင် Slider တန်ဖိုးများကို အလိုလို Update လုပ်မည်
+    if selected_character != st.session_state.prev_character:
+        st.session_state.tts_rate = VOICE_PRESETS[selected_character]["rate"]
+        st.session_state.tts_pitch = VOICE_PRESETS[selected_character]["pitch"]
+        st.session_state.prev_character = selected_character
 
-        tele_text = st.text_area("Script for Teleprompter:", height=200, placeholder="Paste your script here...", key="tele_text_input")
+    # UI Sliders (Session state နဲ့ ချိတ်ဆက်ထားသည်)
+    c1, c2 = st.columns(2)
+    with c1: rate = st.slider("⚡ Speed (Rate)", -50, 50, key="tts_rate", format="%d%%")
+    with c2: pitch = st.slider("🎵 Pitch (Hz)", -50, 50, key="tts_pitch", format="%dHz")
+    
+    # ရွေးချယ်ထားသော အသံကုဒ်ကို ဆွဲထုတ်ခြင်း
+    actual_voice = VOICE_PRESETS[selected_character]["voice"]
+    
+    st.write("---")
+    if st.button("🔊 Generate AI Voice", type="primary", use_container_width=True):
+        if text_input.strip():
+            with st.spinner(f"Generating voice for {selected_character}..."):
+                # RVC အသံမပြတ်စေရန် မြန်မာစာအတွက် စာကြောင်းဖြတ်ခြင်း
+                processed_text = text_input.replace("။", "။ . ").replace("\n", " . \n")
+                if not processed_text.endswith(". "):
+                    processed_text += " . "
 
-        col_t1, col_t2 = st.columns(2)
-        with col_t1:
-            scroll_duration = st.slider("Duration (Seconds) - Higher is Slower", 20, 500, 150, key="tele_speed") 
-        with col_t2:
-            font_size = st.slider("Font Size", 20, 80, 40, key="tele_font")
-
-        if tele_text:
-            html_code = f"""
-            <div class="teleprompter-container" style="
-                height: 350px; overflow: hidden; background-color: #1E1E1E; color: #FFFFFF; 
-                font-size: {font_size}px; line-height: 1.6; font-family: 'Pyidaungsu', Arial, sans-serif;
-                text-align: center; border-radius: 12px; padding: 30px; border: 3px solid #444;
-                margin-bottom: 20px; position: relative; box-shadow: inset 0px 0px 15px rgba(0,0,0,0.8);
-            ">
-                <div class="scrolling-content" style="
-                    display: inline-block;
-                    text-shadow: 2px 2px 4px #000000;
-                    animation: marqueeUp {scroll_duration}s linear infinite; 
-                ">
-                    {tele_text.replace("\n", "<br><br>")}
-                </div>
-            </div>
-
-            <style>
-            @keyframes marqueeUp {{
-                0%   {{ transform: translateY(100%); }}
-                100% {{ transform: translateY(-100%); }}
-            }}
-            .scrolling-content:hover {{
-                animation-play-state: paused;
-                cursor: pointer;
-                color: #FFD700;
-            }}
-            </style>
-            """
-            st.markdown(html_code, unsafe_allow_html=True)
+                async def gen_audio():
+                    communicate = edge_tts.Communicate(processed_text, actual_voice, rate=f"{rate:+d}%", pitch=f"{pitch:+d}Hz")
+                    await communicate.save("ai_voice.mp3")
+                
+                asyncio.run(gen_audio())
+                
+                st.success("✅ Generated Successfully!")
+                st.audio("ai_voice.mp3")
+                with open("ai_voice.mp3", "rb") as f: 
+                    st.download_button("📥 Download MP3", f, "ai_voice.mp3", use_container_width=True)
         else:
-            st.warning("☝️ Please enter script above to start the teleprompter.")
+            st.warning("⚠️ ကျေးဇူးပြု၍ ဖတ်ခိုင်းမည့် စာသားကို အရင်ရိုက်ထည့်ပါ။")
 
-        st.write("---")
-        st.write("#### 🎙️ Record Your Voice (For RVC Applio)")
-        st.markdown("ဒီနေရာမှာ သင့်အသံကို တိုက်ရိုက် Record ဖမ်းပြီး RVC (Applio) ထဲထည့်ရန် Download ဆွဲယူနိုင်ပါသည်။")
-        
-        wav_audio_data = st_audiorec() 
-
-        if wav_audio_data is not None:
-            st.success("✅ Recording saved successfully!")
-            st.audio(wav_audio_data, format='audio/wav')
-            st.download_button(
-                label="📥 Download Recording (WAV)",
-                data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
-            )
 
 
