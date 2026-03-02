@@ -128,7 +128,7 @@ with tab1:
     # 🇲🇲 MYANMAR TAB (Social Media Scriptwriter)
     # ==========================================
     with mm_tab:
-        st.subheader("📱 မြန်မာ Social Media ဇာတ်ညွှန်း / ကဗျာ / စကားပြေများ")
+        st.subheader("📱 STUDIO")
         
         if 'mm_outline_text' not in st.session_state: st.session_state.mm_outline_text = ""
         if 'mm_final_script' not in st.session_state: st.session_state.mm_final_script = ""
@@ -137,7 +137,7 @@ with tab1:
         if "current_mm_topic" not in st.session_state:
             st.session_state.current_mm_topic = ""
 
-        st.subheader("📝 ဘာအကြောင်းရေးမလဲ? (Topic သို့မဟုတ် ဇာတ်လမ်းအကြမ်းထည်)")
+        st.subheader("📝 TOPIC")
         col_topic, col_dice = st.columns([4, 1])
 
         with col_topic:
@@ -600,4 +600,5 @@ with tab5:
                 label="📥 Download Recording (WAV)",
                 data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
+
 
