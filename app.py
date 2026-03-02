@@ -96,12 +96,14 @@ with st.sidebar:
 st.title("🎬 Universal Studio AI")
 st.caption("Scripting • Research • Translation • Audio")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+# 💡 Tab ၆ ခု အဖြစ် ပြောင်းလဲလိုက်သည်
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "💡 Idea to Script", 
     "📂 Video to Script", 
     "🎵 Audio to Script",  
     "🦁 Smart Translator", 
-    "🎙️ Audio Studio"
+    "🎙️ Audio Studio",
+    "🗄️ Script Vault"
 ])
 
 # ==========================================
@@ -321,15 +323,18 @@ with tab1:
             st.success(success_msg)
             st.code(st.session_state.mm_final_script, language="markdown")
             
-            c1, c2 = st.columns(2)
+            # 💡 ခလုတ် ၃ ခု ခွဲလိုက်သည် (TTS, Vault, Download)
+            c1, c2, c3 = st.columns(3)
             with c1:
-                if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 5 ၏ Audio Studio)", key="send_mm_tts", use_container_width=True):
+                if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 5)", key="send_mm_tts", use_container_width=True):
                     st.session_state.tts_text_area = clean_script_text(st.session_state.mm_final_script)
                     st.success("✅ Tab 5 သို့ ရောက်သွားပါပြီ!")
             with c2:
                 if st.button("💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်", key="save_to_vault_btn", use_container_width=True):
                     save_to_vault(mm_topic, st.session_state.mm_final_script, type_keyword)
-                    st.success("✅ သိမ်းဆည်းပြီးပါပြီ! (Session State တွင် မှတ်ထားပါသည်)")
+                    st.success("✅ သိမ်းဆည်းပြီးပါပြီ! (Tab 6 တွင် ကြည့်ပါ)")
+            with c3:
+                st.download_button("📥 Download (.txt)", data=st.session_state.mm_final_script, file_name="MM_Script.txt", mime="text/plain", use_container_width=True)
 
     # ==========================================
     # 🇺🇸 ENGLISH TAB (Creative Literature Studio)
@@ -412,14 +417,21 @@ with tab1:
             st.success(f"✅ Created perfectly for: **{st.session_state.eng_target_audience}**")
             st.code(st.session_state.eng_final_text, language="markdown")
             
-            if st.button("📲 Send to AI TTS (Tab 5)", key="send_eng_tts"):
-                st.session_state.tts_text_area = st.session_state.eng_final_text 
-                st.success("✅ Text sent to Tab 5 Audio Studio!")
+            # 💡 ခလုတ် ၂ ခု ခွဲလိုက်သည် (TTS, Download)
+            c_e1, c_e2 = st.columns(2)
+            with c_e1:
+                if st.button("📲 Send to AI TTS (Tab 5)", key="send_eng_tts", use_container_width=True):
+                    st.session_state.tts_text_area = st.session_state.eng_final_text 
+                    st.success("✅ Text sent to Tab 5 Audio Studio!")
+            with c_e2:
+                st.download_button("📥 Download (.txt)", data=st.session_state.eng_final_text, file_name="ENG_Script.txt", mime="text/plain", use_container_width=True)
 
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
     st.header("📂 Local Video -> Script")
     vid = st.file_uploader("Upload MP4", type=['mp4'])
+    if 'vid_res' not in st.session_state: st.session_state.vid_res = ""
+    
     if vid and st.button("Analyze"):
         if api_key:
             with st.spinner("Watching..."):
@@ -430,9 +442,18 @@ with tab2:
                 while vfile.state.name == "PROCESSING": 
                     time.sleep(2)
                     vfile = genai.get_file(vfile.name)
-                res = generate_content_safe("Describe this video in detail and write a narration script in Burmese.", vfile)
-                st.text_area("Result:", value=res, height=400)
+                st.session_state.vid_res = generate_content_safe("Describe this video in detail and write a narration script in Burmese.", vfile)
                 if os.path.exists(tpath): os.remove(tpath)
+    
+    if st.session_state.vid_res:
+        st.text_area("Result:", value=st.session_state.vid_res, height=400)
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("📲 Send to AI TTS (Tab 5)", key="vid_tts", use_container_width=True):
+                st.session_state.tts_text_area = clean_script_text(st.session_state.vid_res)
+                st.success("✅ Sent to Tab 5!")
+        with c2:
+            st.download_button("📥 Download (.txt)", data=st.session_state.vid_res, file_name="Video_Script.txt", mime="text/plain", use_container_width=True)
 
 # --- TAB 3: AUDIO TO SCRIPT ---
 with tab3:
@@ -440,15 +461,11 @@ with tab3:
     st.info("သင့်စက်ထဲက ဒေါင်းလုဒ်ဆွဲထားသော MP3, M4A အသံဖိုင်များကို တင်ပြီး ဇာတ်ညွှန်း သို့မဟုတ် အနှစ်ချုပ် ပြန်ထုတ်ပါ။")
     
     audio_file = st.file_uploader("Upload Audio (MP3, WAV, M4A)", type=['mp3', 'wav', 'm4a'])
+    if 'aud_res' not in st.session_state: st.session_state.aud_res = ""
     
     col1, col2 = st.columns(2)
     with col1:
-        script_style = st.selectbox("ဘယ်လိုပုံစံ စာသား ထုတ်ချင်လဲ?", [
-            "ဇာတ်ကြောင်းပြော (Narration Script) 🎙️",
-            "အနှစ်ချုပ် (Detailed Summary) 📝",
-            "YouTube Shorts ဇာတ်ညွှန်း (60s) 📱",
-            "စာသားအပြည့်အစုံ (Full Transcript) 📄"
-        ])
+        script_style = st.selectbox("ဘယ်လိုပုံစံ စာသား ထုတ်ချင်လဲ?", ["ဇာတ်ကြောင်းပြော (Narration Script) 🎙️", "အနှစ်ချုပ် (Detailed Summary) 📝", "YouTube Shorts ဇာတ်ညွှန်း (60s) 📱", "စာသားအပြည့်အစုံ (Full Transcript) 📄"])
     with col2:
         custom_instructions = st.text_input("ထပ်ဖြည့်စွက်လိုသော အချက်များ (Optional):", placeholder="ဥပမာ - ရယ်စရာလေးတွေ ထည့်ရေးပေးပါ...")
 
@@ -459,31 +476,68 @@ with tab3:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=f".{file_ext}") as tmp:
                     tmp.write(audio_file.getvalue())
                     tpath = tmp.name
-                
                 myfile = genai.upload_file(tpath)
-                
                 while myfile.state.name == "PROCESSING":
                     time.sleep(2)
                     myfile = genai.get_file(myfile.name)
                 
                 base_prompts = {
-                    "ဇာတ်ကြောင်းပြော (Narration Script) 🎙️": "Listen to this audio and convert it into a highly engaging, emotional, and storytelling-style script in Burmese. Write a flowing Narration that captures the viewer's heart. Do not just list facts.",
+                    "ဇာတ်ကြောင်းပြော (Narration Script) 🎙️": "Listen to this audio and convert it into a highly engaging, emotional, and storytelling-style script in Burmese. Write a flowing Narration that captures the viewer's heart.",
                     "အနှစ်ချုပ် (Detailed Summary) 📝": "Listen to this audio and provide a very detailed summary of the main points in Burmese. Use structured bullet points.",
-                    "YouTube Shorts ဇာတ်ညွှန်း (60s) 📱": "Listen to this audio and create a short, punchy, and highly engaging YouTube Shorts script in Burmese (around 60 seconds reading time). Include a strong Hook at the start.",
-                    "စာသားအပြည့်အစုံ (Full Transcript) 📄": "Listen to this audio and accurately transcribe everything being said into Burmese. Format the paragraphs nicely."
+                    "YouTube Shorts ဇာတ်ညွှန်း (60s) 📱": "Listen to this audio and create a short, punchy, and highly engaging YouTube Shorts script in Burmese.",
+                    "စာသားအပြည့်အစုံ (Full Transcript) 📄": "Listen to this audio and accurately transcribe everything being said into Burmese."
                 }
-                
                 master_prompt = f"ROLE: You are an expert Content Creator and Translator.\nTASK: {base_prompts[script_style]}\n"
-                if custom_instructions:
-                    master_prompt += f"ADDITIONAL INSTRUCTIONS: {custom_instructions}"
+                if custom_instructions: master_prompt += f"ADDITIONAL INSTRUCTIONS: {custom_instructions}"
                 
-                res = generate_content_safe(master_prompt, myfile)
-                st.subheader("✅ AI ၏ ရလဒ်")
-                st.text_area("Copy this result:", value=res, height=400)
-                
+                st.session_state.aud_res = generate_content_safe(master_prompt, myfile)
                 if os.path.exists(tpath): os.remove(tpath)
         else:
             st.error("API Key ထည့်ပါဦး မိတ်ဆွေ။")
+
+    if st.session_state.aud_res:
+        st.subheader("✅ AI ၏ ရလဒ်")
+        st.text_area("Copy this result:", value=st.session_state.aud_res, height=400)
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("📲 Send to AI TTS (Tab 5)", key="aud_tts", use_container_width=True):
+                st.session_state.tts_text_area = clean_script_text(st.session_state.aud_res)
+                st.success("✅ Sent to Tab 5!")
+        with c2:
+            st.download_button("📥 Download (.txt)", data=st.session_state.aud_res, file_name="Audio_Script.txt", mime="text/plain", use_container_width=True)
+
+# --- TAB 4: SMART TRANSLATOR ---
+with tab4:
+    st.header("🦁 Smart Translator (Gemini Powered)")
+    st.info("SRT ဖိုင်ထဲက English စာတွေကို ဒီမှာထည့်ပြီး ဘာသာပြန်ပါ။")
+    if 'trans_res' not in st.session_state: st.session_state.trans_res = ""
+    
+    col_t1, col_t2 = st.columns([1, 1])
+    with col_t1:
+        source_text = st.text_area("English Text (Paste here):", height=400, placeholder="Paste your English SRT or Script here...")
+        tone = st.selectbox("Tone / Context:", ["Nature Documentary (အာတိတ်မြေခွေး၊ တောရိုင်းတိရစ္ဆာန်)", "Emotional Story (ခံစားချက်၊ ဒရမ်မာ)", "Educational / Formal (ပညာပေး၊ ရုံးသုံး)", "Casual Vlog (ပေါ့ပါး၊ သူငယ်ချင်းချင်းပြောသလို)"])
+        
+    with col_t2:
+        if st.button("✨ Translate with Gemini Logic", type="primary", use_container_width=True):
+            if api_key and source_text:
+                with st.spinner("Translating with Context..."):
+                    master_prompt = f"ROLE: Professional Myanmar Translator.\nCONTEXT: '{tone}'.\nTASK: Translate to natural, high-quality Myanmar (Burmese).\nRULES: Don't translate word-for-word. Keep timestamps if any. Sound professional.\nINPUT:\n{source_text}"
+                    st.session_state.trans_res = generate_content_safe(master_prompt)
+            elif not api_key:
+                st.error("API Key ထည့်ပါဦး မိတ်ဆွေ။")
+            else:
+                st.warning("ဘာသာပြန်ချင်တဲ့ စာကို Paste လုပ်ပါ။")
+
+        if st.session_state.trans_res:
+            st.subheader("✅ Myanmar Translation")
+            st.text_area("Copy this result:", value=st.session_state.trans_res, height=300)
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("📲 Send to AI TTS (Tab 5)", key="trans_tts", use_container_width=True):
+                    st.session_state.tts_text_area = clean_script_text(st.session_state.trans_res)
+                    st.success("✅ Sent to Tab 5!")
+            with c2:
+                st.download_button("📥 Download (.txt)", data=st.session_state.trans_res, file_name="Translation.txt", mime="text/plain", use_container_width=True)
 
 # --- TAB 4: SMART TRANSLATOR ---
 with tab4:
@@ -597,6 +651,42 @@ with tab5:
                     st.download_button("📥 Download MP3", f, "ai_voice.mp3", use_container_width=True)
         else:
             st.warning("⚠️ ကျေးဇူးပြု၍ ဖတ်ခိုင်းမည့် စာသားကို အရင်ရိုက်ထည့်ပါ။")
+# ==========================================
+# --- TAB 6: SCRIPT VAULT (မှတ်ဉာဏ်တိုက်) ---
+# ==========================================
+with tab6:
+    st.header("🗄️ Script Vault (မှတ်ဉာဏ်တိုက်)")
+    st.info("Tab 1 မှ သိမ်းဆည်းထားသော ဇာတ်ညွှန်းများကို ဤနေရာတွင် ပြန်ကြည့်နိုင်၊ TTS သို့ ပို့နိုင်၊ Download ဆွဲနိုင်ပါသည်။")
+
+    if 'vault_data' not in st.session_state or len(st.session_state.vault_data) == 0:
+        st.warning("⚠️ မှတ်ဉာဏ်တိုက်ထဲတွင် ဘာမှ မရှိသေးပါ။ Tab 1 မှ စာသားများကို '💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်' ခလုတ်နှိပ်၍ သိမ်းဆည်းပါ။")
+    else:
+        # အားလုံးကို ဖျက်မည့် ခလုတ်
+        if st.button("🗑️ မှတ်ဉာဏ်တိုက် တစ်ခုလုံး ရှင်းလင်းမည်", type="secondary"):
+            st.session_state.vault_data = []
+            st.rerun()
+
+        st.write("---")
+        
+        # နောက်ဆုံးသိမ်းထားတာက အပေါ်ဆုံးရောက်အောင် reversed နဲ့ ပြမည်
+        for i, item in enumerate(reversed(st.session_state.vault_data)):
+            # Expander နဲ့ လှလှပပ ဖုံးထားမည်
+            with st.expander(f"📌 {item['topic']} ({item['category']}) - ⏰ {item['time']}", expanded=(i==0)):
+                st.code(item['script'], language="markdown")
+                
+                vc1, vc2, vc3 = st.columns(3)
+                with vc1:
+                    if st.button("📲 AI TTS သို့ပို့ရန်", key=f"v_tts_{i}", use_container_width=True):
+                        st.session_state.tts_text_area = clean_script_text(item['script'])
+                        st.success("✅ Tab 5 သို့ ရောက်သွားပါပြီ!")
+                with vc2:
+                    st.download_button("📥 Download (.txt)", data=item['script'], file_name=f"Vault_Script_{i}.txt", mime="text/plain", key=f"v_dl_{i}", use_container_width=True)
+                with vc3:
+                    if st.button("❌ ဖျက်မည်", key=f"v_del_{i}", use_container_width=True):
+                        # List ထဲက အမှန်တကယ် Index ကို ပြန်ရှာပြီး ဖျက်သည်
+                        real_index = len(st.session_state.vault_data) - 1 - i
+                        st.session_state.vault_data.pop(real_index)
+                        st.rerun()
 
 
 
