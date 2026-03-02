@@ -539,50 +539,6 @@ with tab4:
             with c2:
                 st.download_button("📥 Download (.txt)", data=st.session_state.trans_res, file_name="Translation.txt", mime="text/plain", use_container_width=True)
 
-# --- TAB 4: SMART TRANSLATOR ---
-with tab4:
-    st.header("🦁 Smart Translator (Gemini Powered)")
-    st.info("SRT ဖိုင်ထဲက English စာတွေကို ဒီမှာထည့်ပြီး ဘာသာပြန်ပါ။ Google Translate လို 'အမှိုက်' မဖြစ်စေရပါ။")
-    
-    col_t1, col_t2 = st.columns([1, 1])
-    
-    with col_t1:
-        source_text = st.text_area("English Text (Paste here):", height=400, placeholder="Paste your English SRT or Script here...")
-        
-        tone = st.selectbox("Tone / Context:", [
-            "Nature Documentary (အာတိတ်မြေခွေး၊ တောရိုင်းတိရစ္ဆာန်)", 
-            "Emotional Story (ခံစားချက်၊ ဒရမ်မာ)",
-            "Educational / Formal (ပညာပေး၊ ရုံးသုံး)",
-            "Casual Vlog (ပေါ့ပါး၊ သူငယ်ချင်းချင်းပြောသလို)"
-        ])
-        
-    with col_t2:
-        if st.button("✨ Translate with Gemini Logic", type="primary"):
-            if api_key and source_text:
-                with st.spinner("Translating with Context..."):
-                    master_prompt = f"""
-                    ROLE: You are a professional Myanmar Translator and Editor.
-                    CONTEXT: This text is from a '{tone}'.
-                    TASK: Translate the following English text into natural, high-quality Myanmar (Burmese).
-                    
-                    RULES:
-                    1. Do NOT translate literally (word-for-word). Use context.
-                    2. If the text is about animals, use specific terms.
-                    3. Keep the timestamp format if provided, or just translate the lines naturally.
-                    4. Make it sound professional and engaging for a Myanmar audience.
-
-                    INPUT TEXT:
-                    {source_text}
-                    """
-                    
-                    translation_result = generate_content_safe(master_prompt)
-                    st.subheader("✅ Myanmar Translation")
-                    st.text_area("Copy this result:", value=translation_result, height=400)
-            elif not api_key:
-                st.error("API Key ထည့်ပါဦး မိတ်ဆွေ။")
-            else:
-                st.warning("ဘာသာပြန်ချင်တဲ့ စာကို Paste လုပ်ပါ။")
-
 # ==========================================
 # --- TAB 5: AUDIO STUDIO ---
 # ==========================================
@@ -687,6 +643,7 @@ with tab6:
                         real_index = len(st.session_state.vault_data) - 1 - i
                         st.session_state.vault_data.pop(real_index)
                         st.rerun()
+
 
 
 
