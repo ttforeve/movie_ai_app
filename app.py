@@ -105,136 +105,291 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 ])
 
 # ==========================================
-# --- TAB 1: PRO SCRIPTWRITER HUB ---
+# 2.5 HELPER FUNCTION (Vault အတွက် အသစ်ထည့်ရန်)
+# ==========================================
+def save_to_vault(topic, script, category):
+    if 'vault_data' not in st.session_state:
+        st.session_state.vault_data = []
+    st.session_state.vault_data.append({
+        "topic": topic,
+        "script": script,
+        "category": category,
+        "time": time.strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+# ==========================================
+# --- TAB 1: IDEA TO SCRIPT HUB ---
 # ==========================================
 with tab1:
-    st.header("💡 Pro Scriptwriter Hub")
-    st.caption("Platform အလိုက်၊ လေသံအလိုက် Professional ဇာတ်ညွှန်းများ ဖန်တီးပါ")
-    
-    if 'outline_text' not in st.session_state:
-        st.session_state.outline_text = ""
-    if 'final_script' not in st.session_state:
-        st.session_state.final_script = ""
+    st.header("💡 Idea to Script Hub")
+    mm_tab, eng_tab = st.tabs(["🇲🇲 မြန်မာ ဇာတ်ညွှန်း (Social Media)", "🇺🇸 English Creative Studio"])
 
-    topic = st.text_input(
-        "📝 ဘာအကြောင်းရေးမလဲ? (Topic)", 
-        placeholder="ဥပမာ - AI နည်းပညာရဲ့ အနာဂတ်, ပုဂံဘုရားများ သမိုင်း..."
-    )
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        platform = st.selectbox("📱 Platform (ဘယ်မှာတင်မှာလဲ?)", [
-            "Facebook Video (Engagement/Share အသားပေး)", 
-            "TikTok / Reels (Hook အသားပေး ဇာတ်ညွှန်းတို)", 
-            "YouTube Video (Visual + Audio ဇယားနဲ့ ဇာတ်ညွှန်းအရှည်)", 
-            "Voiceover Only (အသံသွင်းဖတ်ရန် စာသားသက်သက်)", 
-            "Cinematic Short Film (ရုပ်ရှင်ဆန်ဆန်)"
-        ])
-    with col2:
-        tone = st.selectbox("🎭 Tone (လေသံ)", [
-            "Professional / Educational (အတည်ပေါက်/ပညာပေး)", 
-            "Funny / Humorous (ဟာသ/ပေါ့ပေါ့ပါးပါး)", 
-            "Emotional / Dramatic (အလွမ်း/ခံစားချက်ပါပါ)", 
-            "Scary / Thriller (ခြောက်ခြားဖွယ်)",
-            "Casual / Vlog (သူငယ်ချင်းလို ပြောဆိုခြင်း)",
-            "Persuasive / Sales (ဆွဲဆောင်သိမ်းသွင်းသော/ရောင်းရေးဝယ်တာ)"
-        ])
-    with col3:
-        audience = st.selectbox("🎯 Target Audience (ပစ်မှတ်)", [
-            "General Audience (လူတိုင်းအတွက်)", 
-            "Youth / Gen Z (လူငယ်များအတွက်)", 
-            "Middle-aged Adults (လူလတ်ပိုင်းအရွယ်များ)",
-            "Professionals (လုပ်ငန်းရှင်/ပညာရှင်များ)"
-        ])
+    # ==========================================
+    # 🇲🇲 MYANMAR TAB (Social Media Scriptwriter)
+    # ==========================================
+    with mm_tab:
+        st.subheader("📱 မြန်မာ Social Media ဇာတ်ညွှန်း / ကဗျာ / စကားပြေများ")
+        
+        if 'mm_outline_text' not in st.session_state: st.session_state.mm_outline_text = ""
+        if 'mm_final_script' not in st.session_state: st.session_state.mm_final_script = ""
 
-    st.write("---")
-    
-    btn_col1, btn_col2 = st.columns(2)
-    with btn_col1:
-        gen_outline = st.button("📑 အဆင့် ၁: ခေါင်းစဉ်ခွဲများ (Outline) အရင်ထုတ်ရန်", use_container_width=True)
-    with btn_col2:
-        gen_script = st.button("🚀 အဆင့် ၂: ဇာတ်ညွှန်း အပြည့်အစုံ တန်းရေးရန်", type="primary", use_container_width=True)
+        # 💡 "Surprise Me" အတွက် Session State မှတ်ဉာဏ်
+        if "current_mm_topic" not in st.session_state:
+            st.session_state.current_mm_topic = ""
 
-    base_rules = f"""
-    CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language (မြန်မာဘာသာဖြင့်သာ ရေးပါ). 
-    Do NOT use English for headings, visual cues, action lines, or scene descriptions. Everything must be perfectly translated to Burmese.
-    Topic: {topic}
-    Tone/Vibe: {tone}
-    Target Audience: {audience}
-    Format Requirements for '{platform}':
-    """
-    
-    if "Facebook" in platform:
-        base_rules += "- Start with a scroll-stopping visual and audio hook.\n- Focus on storytelling and emotional connection to drive shares.\n- End with a question to encourage comments."
-    elif "TikTok" in platform:
-        base_rules += "- Start with a 3-second strong HOOK.\n- Keep it fast-paced.\n- End with a Call-to-Action (CTA)."
-    elif "YouTube" in platform:
-        base_rules += "- Divide into sections (Intro, Body, Outro).\n- Include visual cues in [brackets] and spoken words clearly."
-    elif "Voiceover" in platform:
-        base_rules += "- ONLY write the spoken words. No camera angles, no visual descriptions. Just paragraphs for a voice actor to read."
-    elif "Cinematic" in platform:
-        base_rules += "- Write like a movie script. Include Scene Headings, Action lines, and Character dialogue/Voiceover."
+        st.subheader("📝 ဘာအကြောင်းရေးမလဲ? (Topic သို့မဟုတ် ဇာတ်လမ်းအကြမ်းထည်)")
+        col_topic, col_dice = st.columns([4, 1])
 
-    if gen_outline:
-        if api_key and topic:
+        with col_topic:
+            mm_topic = st.text_area("Topic Input", value=st.session_state.current_mm_topic, height=100, placeholder="ဥပမာ - အချိန်ခရီးသွားတဲ့ ကော်ဖီဆိုင်လေး (သို့) ဇာတ်လမ်းအကြမ်း အစအဆုံး ကူးထည့်ပါ...", label_visibility="collapsed")
+
+        with col_dice:
+            if st.button("🎲 Surprise Me!", use_container_width=True):
+                awesome_ideas = [
+                    "လူသားတွေရဲ့ အရိပ်တွေကို ဝယ်ယူတဲ့ လျှို့ဝှက်ဈေးဆိုင်",
+                    "မိုးစက်တွေနဲ့အတူ ပါသွားတဲ့ လွမ်းသူ့စာ",
+                    "၁၀ နှစ်ကျော် ပျောက်ဆုံးနေတဲ့ တောတွင်းက ရွာလေးတစ်ရွာ",
+                    "ကမ္ဘာကြီး ရပ်တန့်သွားတဲ့ ၅ စက္ကန့်အတွင်း ဖြစ်ပျက်ခဲ့တာတွေ",
+                    "ဘဝမှာ အရှုံးပေးချင်စိတ်ပေါက်နေတဲ့သူအတွက် ခွန်အားပေးစာ",
+                    "နဂါးတွေ ရှင်သန်နေဆဲဖြစ်တဲ့ မြေအောက်ကမ္ဘာ",
+                    "ကြောင်လေးတွေ ကမ္ဘာကို အုပ်စိုးသွားတဲ့နေ့",
+                    "မှန်ထဲက ကမ္ဘာနဲ့ အပြင်ကမ္ဘာ လဲလှယ်ခံလိုက်ရတဲ့ ကောင်လေး",
+                    "ညသန်းခေါင် ရေဒီယိုကနေ လာတဲ့ ထူးဆန်းတဲ့ အကူအညီတောင်းသံ",
+                    "လမင်းကို ချစ်မိသွားတဲ့ ပန်းနုရောင် တိမ်တိုက်လေး",
+                    "အချိန်တွေ ရပ်တန့်သွားတဲ့ ဆောင်းရာသီ ညတစ်ည",
+                    "ကိုယ့်ကိုယ်ကိုယ် ပြန်လည်ရှာဖွေတွေ့ရှိခြင်း အကြောင်း",
+                    "လူသားတွေ အကုန်လုံး အိပ်မက်တစ်ခုတည်း မက်တဲ့ ရုပ်ရှင်"
+                ]
+                import random
+                st.session_state.current_mm_topic = random.choice(awesome_ideas)
+                st.rerun() 
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1: 
+            mm_platform = st.selectbox("📱 Platform", ["Facebook Video", "TikTok / Reels", "YouTube Video", "Voiceover Only"], key="mm_plat")
+        with col2: 
+            mm_tone = st.selectbox("🎭 Tone / အမျိုးအစား", [
+                "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful / Inspirational)",
+                "🎬 ရုပ်ရှင် / စာအုပ် အနှစ်ချုပ် (Recap / Summary)",
+                "🕵️‍♂️ မှုခင်းနှင့် လျှို့ဝှက်ဆန်းကြယ် (True Crime / Mystery)",
+                "📜 သမိုင်းပုံပြင် နှင့် ဒဏ္ဍာရီ (Epic Myth / Lore)",
+                "🎧 ညဘက်နားထောင်ရန် (Late Night ASMR / Calm)",
+                "👻 အမှောင်ရသ ဇာတ်လမ်း (Gothic / Midnight Tale)",
+                "🥀 အမှောင်ရသ ကဗျာ (Gothic Poetry)",
+                "😏 ခနဲ့တဲ့တဲ့ / သရော်စာ (Sarcastic / Satirical)", 
+                "😂 ဟာသ / ပေါ့ပေါ့ပါးပါး (Funny / Humorous)",
+                "👔 တရားဝင် / ပညာပေး (Professional / Educational)",
+                "📱 Casual / Vlog (စကားပြောဟန်)"
+            ], key="mm_tone")
+        with col3: 
+            mm_audience = st.selectbox("🎯 Audience", ["General Audience", "Youth / Gen Z", "Middle-aged Adults"], key="mm_aud")
+        with col4: 
+            mm_pov = st.selectbox("🗣️ ရှုထောင့် (POV)", ["Third-Person (ဘေးလူက ဇာတ်ကြောင်းပြောပြခြင်း)", "First-Person (ကိုယ်တိုင်ပြောပြခြင်း)", "Dialogue (အပြန်အလှန်ပြောခြင်း)"], key="mm_pov")
+
+        st.write("---")
+        
+        # 💡 ခလုတ်နာမည်များနှင့် Keyword များ သတ်မှတ်ခြင်း
+        if "Poetry" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ကဗျာပုံစံ ရေးပါ"
+            direct_btn_text = "🚀 ကဗျာ တန်းရေးရန် (Direct Poem)"
+            type_keyword = "GOTHIC POEM (စကားပြေကဗျာ)"
+            success_msg = "✅ ကဗျာ ရေးသားပြီးပါပြီ!"
+        elif "Soulful" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ရသစာတို ရေးပါ"
+            direct_btn_text = "🚀 ရသစာတို တန်းရေးရန် (Direct Story)"
+            type_keyword = "INSPIRATIONAL SHORT STORY (နှလုံးသားခွန်အားပေး ရသစာတို)"
+            success_msg = "✅ ရသစာတို ရေးသားပြီးပါပြီ!"
+        elif "Recap" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း အနှစ်ချုပ် ဇာတ်ညွှန်းရေးပါ"
+            direct_btn_text = "🚀 အနှစ်ချုပ် တန်းရေးရန် (Direct Recap)"
+            type_keyword = "MOVIE/BOOK RECAP SCRIPT (ရုပ်ရှင်/စာအုပ် အနှစ်ချုပ် ဇာတ်ညွှန်း)"
+            success_msg = "✅ အနှစ်ချုပ် ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+        elif "True Crime" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း မှုခင်းဇာတ်ကြောင်း ရေးပါ"
+            direct_btn_text = "🚀 မှုခင်းဇာတ်ကြောင်း တန်းရေးရန် (Direct True Crime)"
+            type_keyword = "TRUE CRIME / MYSTERY SCRIPT (မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် ဇာတ်ညွှန်း)"
+            success_msg = "✅ မှုခင်း ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+        elif "Epic Myth" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ဒဏ္ဍာရီဇာတ်ကြောင်း ရေးပါ"
+            direct_btn_text = "🚀 ဒဏ္ဍာရီ တန်းရေးရန် (Direct Lore)"
+            type_keyword = "EPIC MYTH / HISTORICAL LORE (သမိုင်း/ဒဏ္ဍာရီ ဇာတ်ကြောင်း)"
+            success_msg = "✅ ဒဏ္ဍာရီ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+        elif "ASMR" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ASMR စာသား ရေးပါ"
+            direct_btn_text = "🚀 ASMR စာသား တန်းရေးရန် (Direct ASMR)"
+            type_keyword = "LATE NIGHT ASMR NARRATION (ညဘက်နားထောင်ရန် အေးချမ်းသောစာသား)"
+            success_msg = "✅ ASMR စာသား ရေးသားပြီးပါပြီ!"
+        elif "Tale" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း စကားပြေ/ဇာတ်လမ်းပုံစံ ရေးပါ"
+            direct_btn_text = "🚀 စကားပြေ တန်းရေးရန် (Direct Tale)"
+            type_keyword = "PROSE TALE (စကားပြေ ဇာတ်လမ်း)"
+            success_msg = "✅ ဇာတ်လမ်း ရေးသားပြီးပါပြီ!"
+        elif "Sarcastic" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း သရော်စာ ရေးပါ"
+            direct_btn_text = "🚀 သရော်စာ တန်းရေးရန် (Direct Satire)"
+            type_keyword = "SARCASTIC / SATIRICAL MONOLOGUE (ခနဲ့တဲ့တဲ့ သရော်စာ)"
+            success_msg = "✅ အမိုက်စား သရော်စာ ရေးသားပြီးပါပြီ!"
+        else:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း စကားပြောဇာတ်ညွှန်း ရေးပါ"
+            direct_btn_text = "🚀 ဇာတ်ညွှန်း တန်းရေးရန် (Direct Script)"
+            type_keyword = "SPOKEN SCRIPT (စကားပြော ဇာတ်ညွှန်း)"
+            success_msg = "✅ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+
+        mm_b1, mm_b2 = st.columns(2)
+        with mm_b1: gen_mm_outline = st.button("📑 အဆင့် ၁: Outline အရင်ထုတ်ရန်", use_container_width=True, key="btn_mm_out")
+        with mm_b2: gen_mm_script = st.button(direct_btn_text, type="primary", use_container_width=True, key="btn_mm_script")
+
+        # 💡 အခြေခံ ညွှန်ကြားချက်များ
+        mm_rules = f"""
+        CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language. 
+        VERY IMPORTANT: You MUST write the output as a {type_keyword}. 
+        DO NOT use formal endings like "သည်", "မည်", "၏", "၍", "လျက်" unless it is a classic poem or requested. 
+        USE natural endings like "တယ်", "မယ်", "ရဲ့", "တာ", "ပြီး", "တော့" for spoken scripts and prose. 
+        AVOID generic vlog greetings. Act as a CINEMATIC STORYTELLER.
+        
+        Topic: {mm_topic}. Tone: {mm_tone}. Audience: {mm_audience}. 
+        """
+        
+        # 💡 နောက်ကွယ်မှ အတိအကျ ပုံသွင်းမည့် လျှို့ဝှက် Prompts များ
+        if "Soulful" in mm_tone:
+            mm_rules += "🔴 SOULFUL PROTOCOL: Write like 'Chicken Soup for the Soul'. Focus on deep human emotions, empathy, or overcoming hardship. End with a profound life lesson.\n"
+        elif "Recap" in mm_tone:
+            mm_rules += "🔴 MOVIE RECAP PROTOCOL: Start with a massive HOOK. Highlight suspenseful parts. Tell it like a gripping campfire story.\n"
+        elif "True Crime" in mm_tone:
+            mm_rules += "🔴 TRUE CRIME PROTOCOL: Create a suspenseful, dark, analytical tone. Build tension slowly. End with unsettling questions.\n"
+        elif "Epic Myth" in mm_tone:
+            mm_rules += "🔴 EPIC MYTH PROTOCOL: Write with a grand, cinematic tone. Use slightly elegant Burmese vocabulary.\n"
+        elif "ASMR" in mm_tone:
+            mm_rules += "🔴 LATE NIGHT ASMR PROTOCOL: Tone must be extremely calm, soothing, intimate. Use ellipses (...) frequently for long pauses.\n"
+        elif "Tale" in mm_tone:
+            mm_rules += "🔴 GOTHIC PROTOCOL: Twist the concept into something surreal, deeply psychological, and unpredictable. Focus on dark aesthetic.\n"
+        elif "Poetry" in mm_tone:
+            mm_rules += "🔴 GOTHIC PROSE-POEM FORMAT: Write as a 'Prose Poem' or Voiceover Monologue. Use dramatic pauses (...). Length: Around 4 to 7 sentences only.\n"
+        elif "Sarcastic" in mm_tone:
+            mm_rules += "🔴 SARCASTIC PROTOCOL: Use a highly sarcastic, dry, and slightly mocking tone. Irony, cynical observations, and a witty punchline.\n"
+
+        if "Third-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: THIRD-PERSON (He, She, They).\n"
+        elif "First-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: FIRST-PERSON (I, Me, My).\n"
+
+        if gen_mm_outline and api_key and mm_topic:
             with st.spinner("Brainstorming Outline..."):
-                prompt = f"""
-                You are an expert Content Strategist. Create a highly engaging 5-point OUTLINE for a {platform} about '{topic}'.
-                Tone: {tone}. Target Audience: {audience}.
-                CRITICAL INSTRUCTION: The ENTIRE output (including Headings, Key Ideas, Visual Descriptions, and Examples) MUST be 100% in Burmese Language (မြန်မာဘာသာ). NO English words allowed.
-                DO NOT write the full script. Just provide the bullet points and key ideas.
-                """
-                st.session_state.outline_text = generate_content_safe(prompt)
-                st.session_state.final_script = "" 
-        elif not topic:
-            st.warning("⚠️ ခေါင်းစဉ် (Topic) အရင် ရိုက်ထည့်ပါဦး။")
-        elif not api_key:
-            st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
+                prompt = f"Create a 5-point OUTLINE for a {type_keyword} about '{mm_topic}'. MUST be 100% in Burmese. {mm_rules}"
+                st.session_state.mm_outline_text = generate_content_safe(prompt)
+                st.session_state.mm_final_script = "" 
 
-    if st.session_state.outline_text:
-        with st.expander("📑 Your Script Outline (ဒီခေါင်းစဉ်လေးတွေ အဆင်ပြေလား စစ်ကြည့်ပါ)", expanded=True):
-            st.write(st.session_state.outline_text)
-            if st.button("✨ ဒီ Outline အတိုင်း ဇာတ်ညွှန်း အပြည့်အစုံ ရေးပါ", use_container_width=True):
-                if api_key:
-                    with st.spinner("Writing Full Script based on outline... (ခဏစောင့်ပါ)"):
-                        prompt = base_rules + f"\n\nBased on this OUTLINE, write the full engaging script:\n{st.session_state.outline_text}"
-                        st.session_state.final_script = generate_content_safe(prompt)
-                        st.session_state.outline_text = "" 
+        if st.session_state.mm_outline_text:
+            with st.expander("📑 Your Script Outline", expanded=True):
+                st.write(st.session_state.mm_outline_text)
+                if st.button(out_btn_text, use_container_width=True, key="btn_mm_full"):
+                    with st.spinner(f"Writing Full {type_keyword}..."):
+                        prompt = mm_rules + f"\nBased on this OUTLINE, write the full {type_keyword}:\n{st.session_state.mm_outline_text}"
+                        st.session_state.mm_final_script = generate_content_safe(prompt)
+                        st.session_state.mm_outline_text = "" 
                         st.rerun() 
-                else:
-                    st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
 
-    if gen_script:
-        if api_key and topic:
-            with st.spinner("Writing Professional Script..."):
-                prompt = f"""
-                You are an expert Scriptwriter. Write a FULL, highly engaging script.
-                {base_rules}
-                Make it captivating and creative! Remember, 100% in Burmese Language.
-                """
-                st.session_state.final_script = generate_content_safe(prompt)
-                st.session_state.outline_text = "" 
-        elif not topic:
-            st.warning("⚠️ ခေါင်းစဉ် (Topic) အရင် ရိုက်ထည့်ပါဦး။")
-        elif not api_key:
-            st.error("⚠️ API Key ထည့်ရန် လိုအပ်ပါသည်။")
+        if gen_mm_script and api_key and mm_topic:
+            with st.spinner(f"Writing Professional {type_keyword}..."):
+                prompt = f"Write a FULL, highly engaging {type_keyword}. {mm_rules}"
+                st.session_state.mm_final_script = generate_content_safe(prompt)
 
-    if st.session_state.final_script:
-        st.success("✅ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!")
-        
-        words = len(st.session_state.final_script.split())
-        read_time = max(1, round(words / 130))
-        
-        met_c1, met_c2 = st.columns(2)
-        met_c1.metric("📝 စာလုံးရေ (Word Count)", f"~{words} words")
-        met_c2.metric("⏱️ ခန့်မှန်း ဖတ်ချိန် (Reading Time)", f"~{read_time} min")
+        if st.session_state.mm_final_script:
+            st.success(success_msg)
+            st.code(st.session_state.mm_final_script, language="markdown")
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 5 ၏ Audio Studio)", key="send_mm_tts", use_container_width=True):
+                    st.session_state.tts_text_area = clean_script_text(st.session_state.mm_final_script)
+                    st.success("✅ Tab 5 သို့ ရောက်သွားပါပြီ!")
+            with c2:
+                if st.button("💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်", key="save_to_vault_btn", use_container_width=True):
+                    save_to_vault(mm_topic, st.session_state.mm_final_script, type_keyword)
+                    st.success("✅ သိမ်းဆည်းပြီးပါပြီ! (Session State တွင် မှတ်ထားပါသည်)")
 
-        script_result = st.text_area("Final Script:", value=st.session_state.final_script, height=400)
+    # ==========================================
+    # 🇺🇸 ENGLISH TAB (Creative Literature Studio)
+    # ==========================================
+    with eng_tab:
+        st.subheader("✍️ English Creative Studio")
+        st.caption("Perfect for Teenagers, Children, and Heartwarming Adult Stories")
         
-        # <<< ပြောင်းလဲလိုက်သော ခလုတ်နှင့် တိုက်ရိုက်ပို့မည့် နေရာ >>>
-        if st.button("📲 AI TTS (အသံထွက်ဖတ်ပေးမည့်စက်) ထဲသို့ တိုက်ရိုက်ထည့်ရန်", type="primary"):
-            st.session_state.tts_text_area = clean_script_text(script_result)
-            st.success("✅ Tab 5: Audio Studio အောက်က AI TTS Generator ထဲကို အသံထွက်ဖတ်ရမည့် စာသားသီးသန့် ရောက်သွားပါပြီ! သွားရောက် အသံထုတ်နိုင်ပါပြီ။")
+        if 'eng_final_text' not in st.session_state: st.session_state.eng_final_text = ""
+        if 'eng_target_audience' not in st.session_state: st.session_state.eng_target_audience = "Teenagers / Gen Z"
+
+        eng_topic = st.text_input("📝 What is the story about? (Topic)", placeholder="e.g., A magical forest, A lost letter...", key="eng_topic")
+        
+        col_e1, col_e2, col_e3 = st.columns(3)
+        with col_e1:
+            eng_format = st.selectbox("📜 Format", [
+                "Short Story", 
+                "Flash Fiction", 
+                "Poem", 
+                "Blog Article", 
+                "Children's Story", 
+                "Children's Song",
+                "Chicken Soup for the Soul (Inspirational)",
+                "Short Joke / Anecdote"
+            ], key="eng_format")
+            
+        with col_e2:
+            eng_genre = st.selectbox("🎭 Genre", [
+                "Coming-of-age", 
+                "Comedy / Humor", 
+                "Fantasy / Magic", 
+                "Sci-Fi", 
+                "Mystery / Thriller", 
+                "Horror", 
+                "Romance"
+            ], key="eng_genre")
+        with col_e3:
+            eng_length = st.radio("📏 Length", [
+                "Short (~150 words)", 
+                "Medium (~300 words)", 
+                "Long (~500 words)"
+            ], key="eng_length")
+
+        st.write("---")
+        if st.button("✨ Generate English Content", type="primary", use_container_width=True, key="btn_eng_gen"):
+            if api_key and eng_topic:
+                with st.spinner("Crafting your creative piece..."):
+                    current_audience = "Teenagers / Gen Z" 
+                    if eng_genre == "Romance" or eng_format == "Chicken Soup for the Soul (Inspirational)":
+                        current_audience = "Adults / Middle-aged"
+                    elif "Children" in eng_format:
+                        current_audience = "Children / Kids"
+                        
+                    st.session_state.eng_target_audience = current_audience
+
+                    eng_prompt = f"""
+                    CRITICAL INSTRUCTION: Write entirely in English. Do NOT output any conversational text, ONLY the final creative piece.
+                    Topic: {eng_topic}
+                    Format: {eng_format}
+                    Genre: {eng_genre}
+                    Target Audience: {current_audience}
+                    Length Requirement: {eng_length}. Strictly adhere to this word count limit.
+
+                    STYLE & TONE RULES:
+                    - 'Show, Don't Tell': Use vivid imagery, emotions, and sensory details.
+                    - AVOID overused AI clichés (DO NOT use words like: delve, tapestry, unveil, testament, symphony, dance of).
+                    - Ensure the tone perfectly matches the Target Audience ({current_audience}).
+                    """
+                    
+                    if "Chicken Soup" in eng_format:
+                        eng_prompt += "- TONE: Highly emotional, heartwarming, and relatable. Must conclude with a profound but gentle life lesson or realization.\n"
+                    elif "Song" in eng_format:
+                        eng_prompt += "- STRUCTURE: Write as a song with clear Verses and a catchy Chorus. Must have a rhythmic flow.\n"
+                    elif "Poem" in eng_format:
+                        eng_prompt += "- STRUCTURE: Use powerful poetic devices, rhythm, and metaphors.\n"
+
+                    st.session_state.eng_final_text = generate_content_safe(eng_prompt)
+
+        if st.session_state.eng_final_text:
+            st.success(f"✅ Created perfectly for: **{st.session_state.eng_target_audience}**")
+            st.code(st.session_state.eng_final_text, language="markdown")
+            
+            if st.button("📲 Send to AI TTS (Tab 5)", key="send_eng_tts"):
+                st.session_state.tts_text_area = st.session_state.eng_final_text 
+                st.success("✅ Text sent to Tab 5 Audio Studio!")
 
 # --- TAB 2: VIDEO TO SCRIPT ---
 with tab2:
@@ -445,3 +600,4 @@ with tab5:
                 label="📥 Download Recording (WAV)",
                 data=wav_audio_data, file_name="my_voice_record.wav", mime="audio/wav"
             )
+
