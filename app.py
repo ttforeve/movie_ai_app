@@ -164,16 +164,17 @@ with tab1:
                 st.session_state.current_mm_topic = random.choice(awesome_ideas)
                 st.rerun() 
         
-        col1, col2, col3, col4 = st.columns(4)
-        with col1: 
-            mm_platform = st.selectbox("📱 Video Format (ဗီဒီယိုပုံစံ)", [
+        # 💡 ဖုန်းမှာ ပြွတ်သိပ်မနေအောင် Row ၂ ခု ခွဲလိုက်သည်
+        row1_col1, row1_col2 = st.columns(2)
+        with row1_col1: 
+            mm_platform = st.selectbox("📱 Video Format", [
                 "📱 Short Video (Reels/TikTok/Shorts) - ၁ မိနစ်ခွဲအောက်", 
                 "📺 Long Video (Facebook/YouTube) - ၁ မိနစ်ခွဲအထက်", 
                 "🎙️ Voiceover Script - အသံဖတ်ရန် စာသားသီးသန့်"
             ], key="mm_plat")
-        with col2: 
+        with row1_col2: 
             mm_tone = st.selectbox("🎭 Tone / အမျိုးအစား", [
-                "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful / Inspirational)",
+                "💖 နှလုံးသား ရသစာတို (Soulful / Inspirational)",
                 "🎬 ရုပ်ရှင် / စာအုပ် အနှစ်ချုပ် (Recap / Summary)",
                 "🕵️‍♂️ မှုခင်းနှင့် လျှို့ဝှက်ဆန်းကြယ် (True Crime / Mystery)",
                 "📜 သမိုင်းပုံပြင် နှင့် ဒဏ္ဍာရီ (Epic Myth / Lore)",
@@ -185,10 +186,15 @@ with tab1:
                 "👔 တရားဝင် / ပညာပေး (Professional / Educational)",
                 "📱 Casual / Vlog (စကားပြောဟန်)"
             ], key="mm_tone")
-        with col3: 
+
+        row2_col1, row2_col2, row2_col3 = st.columns(3)
+        with row2_col1: 
             mm_audience = st.selectbox("🎯 Audience", ["General Audience", "Youth / Gen Z", "Middle-aged Adults"], key="mm_aud")
-        with col4: 
-            mm_pov = st.selectbox("🗣️ ရှုထောင့် (POV)", ["Third-Person (ဘေးလူက ဇာတ်ကြောင်းပြောပြခြင်း)", "First-Person (ကိုယ်တိုင်ပြောပြခြင်း)", "Dialogue (အပြန်အလှန်ပြောခြင်း)"], key="mm_pov")
+        with row2_col2: 
+            mm_pov = st.selectbox("🗣️ ရှုထောင့် (POV)", ["Third-Person (ဘေးလူက ပြောပြခြင်း)", "First-Person (ကိုယ်တိုင်ပြောပြခြင်း)", "Dialogue (အပြန်အလှန်ပြောခြင်း)"], key="mm_pov")
+        with row2_col3:
+            # 💡 အသစ်ထပ်တိုးထားသော ဇာတ်ကောင် ရှုထောင့်
+            mm_gender = st.selectbox("👤 ပြောဆိုသူ (Narrator)", ["🏳️ ယေဘုယျ (Neutral)", "👦 အမျိုးသား (Male)", "👧 အမျိုးသမီး (Female)"], key="mm_gen")
 
         st.write("---")
         
@@ -283,6 +289,12 @@ with tab1:
 
         if "Third-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: THIRD-PERSON (He, She, They).\n"
         elif "First-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: FIRST-PERSON (I, Me, My).\n"
+
+        # 💡 ဇာတ်ကောင်အလိုက် အသုံးအနှုန်းများ ထိန်းချုပ်ခြင်း (အသစ်)
+        if "Male" in mm_gender: 
+            mm_rules += "NARRATOR GENDER: MALE. Use male expressions, slang, and perspective (e.g., use 'ကျွန်တော်', 'ဗျ' where natural). The tone, especially if sarcastic or emotional, must feel distinctly masculine.\n"
+        elif "Female" in mm_gender: 
+            mm_rules += "NARRATOR GENDER: FEMALE. Use female expressions, slang, and perspective (e.g., use 'ကျွန်မ', 'ရှင်' where natural). The tone, especially if sarcastic or emotional, must feel distinctly feminine.\n"
 
         if gen_mm_outline and api_key and mm_topic:
             with st.spinner("Brainstorming Outline..."):
@@ -585,6 +597,7 @@ with tab5:
                     st.download_button("📥 Download MP3", f, "ai_voice.mp3", use_container_width=True)
         else:
             st.warning("⚠️ ကျေးဇူးပြု၍ ဖတ်ခိုင်းမည့် စာသားကို အရင်ရိုက်ထည့်ပါ။")
+
 
 
 
