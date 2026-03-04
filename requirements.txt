@@ -3,5 +3,3 @@ google-generativeai
 yt-dlp
 edge-tts
 streamlit-audiorec
-Pillow
-protobuf
