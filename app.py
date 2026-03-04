@@ -99,10 +99,12 @@ def clean_script_text(script):
 
 import yt_dlp # requests အစား yt-dlp ကိုပဲ ပြန်သုံးမည်
 
-# ==========================================
-# 🚀 YouTube Download System (Cookie + iOS Bypass - 2026 Edition)
-# ==========================================
+import os
+import yt_dlp
 
+# ==========================================
+# 🎵 ၁။ YouTube Audio Downloader (Cookie + Delay Bypass)
+# ==========================================
 def download_audio_from_youtube(url):
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -114,9 +116,16 @@ def download_audio_from_youtube(url):
         'outtmpl': 'downloaded_audio.%(ext)s',
         'quiet': True,
         'noplaylist': True,
-        # 💡 403 Forbidden ကို ကျော်ဖြတ်ရန် အဓိကသော့ချက်
+        'nocheckcertificate': True,
+        
+        # 💡 403 Forbidden ကို ကျော်ရန် အဓိကသော့ချက် (လက်မှတ်)
         'cookiefile': 'youtube_cookies.txt', 
-        # 💡 iOS နှင့် Mobile Web ပုံစံဖြင့် လှည့်စားခြင်း
+        
+        # 💡 စက်ရုပ်မဟုတ်ကြောင်း သက်သေပြရန် ၃ စက္ကန့် စောင့်ခိုင်းခြင်း
+        'sleep_interval': 3,
+        'max_sleep_interval': 5,
+        
+        # 💡 iOS နှင့် Mobile Web Client အဖြစ် ဟန်ဆောင်ခြင်း
         'extractor_args': {
             'youtube': {
                 'player_client': ['ios', 'mweb'],
@@ -125,24 +134,38 @@ def download_audio_from_youtube(url):
         },
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+            'Referer': 'https://www.google.com/',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         }
     }
+    
     try:
         if os.path.exists("downloaded_audio.mp3"): os.remove("downloaded_audio.mp3")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([url])
         return "downloaded_audio.mp3"
     except Exception as e:
-        raise Exception(f"YouTube Download Error (Audio): {str(e)}")
+        raise Exception(f"YouTube 403 Error (Audio): {str(e)}")
 
+
+# ==========================================
+# 🎬 ၂။ YouTube Video Downloader (Cookie + Delay Bypass)
+# ==========================================
 def download_video_from_youtube(url):
     ydl_opts = {
-        'format': 'best[ext=mp4]/best',
+        'format': 'best[ext=mp4]/best', # MP4 သီးသန့် ဒေါင်းမည်
         'outtmpl': 'downloaded_video.%(ext)s',
         'quiet': True,
         'noplaylist': True,
-        # 💡 403 Forbidden ကို ကျော်ဖြတ်ရန် အဓိကသော့ချက်
+        'nocheckcertificate': True,
+        
+        # 💡 VIP လက်မှတ် (Cookie)
         'cookiefile': 'youtube_cookies.txt',
+        
+        # 💡 လူသားတစ်ယောက်လို ဖြည်းဖြည်းချင်း တောင်းဆိုခြင်း
+        'sleep_interval': 3,
+        'max_sleep_interval': 5,
+        
         'extractor_args': {
             'youtube': {
                 'player_client': ['ios', 'mweb'],
@@ -151,39 +174,17 @@ def download_video_from_youtube(url):
         },
         'http_headers': {
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+            'Referer': 'https://www.youtube.com/',
         }
     }
+    
     try:
         if os.path.exists("downloaded_video.mp4"): os.remove("downloaded_video.mp4")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
             ydl.download([url])
         return "downloaded_video.mp4"
     except Exception as e:
-        raise Exception(f"YouTube Download Error (Video): {str(e)}")
-
-# ==========================================
-# 🤖 Gemini AI Content Generation
-# ==========================================
-
-def generate_content_safe(prompt, media_file=None):
-    models_to_try = [
-        "models/gemini-2.0-flash", 
-        "models/gemini-2.5-flash", 
-        "models/gemini-1.5-flash", 
-        "models/gemini-flash-latest"
-    ]
-    errors = []
-    for m in models_to_try:
-        try:
-            model = genai.GenerativeModel(m)
-            cfg = {"temperature": 0.7, "max_output_tokens": 8192}
-            if media_file: 
-                return model.generate_content([media_file, prompt], generation_config=cfg).text
-            return model.generate_content(prompt, generation_config=cfg).text
-        except Exception as e:
-            errors.append(f"{m}: {str(e)}")
-            continue 
-    return f"⚠️ Error: All models failed. Check API Key.\nLogs: {errors[0]}"
+        raise Exception(f"YouTube 403 Error (Video): {str(e)}")
 
 def generate_content_safe(prompt, media_file=None):
     models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
@@ -1164,5 +1165,6 @@ if selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")                
+
 
 
