@@ -292,18 +292,82 @@ elif selected_menu == "📚 မှတ်ဉာဏ်တိုက်":
 
 elif selected_menu == "🕵️‍♂️ Lore Hunter":
     st.header("🕵️‍♂️ Lore Hunter & World Explorer")
-    channel_url = st.text_input("Enter YouTube Channel URL (e.g., https://www.youtube.com/@NatGeo/videos)")
-    if st.button("📡 နောက်ဆုံး ဗီဒီယိုများကို စစ်ဆေးမည်"):
+    
+    # ==========================================
+    # 🎯 အပိုင်း (၁): AI ထံမှ ရှားပါး အိုင်ဒီယာများ တောင်းယူခြင်း
+    # ==========================================
+    st.subheader("🕵️‍♂️ အိုင်ဒီယာ (Dark Lore Hunter)")
+    st.write("အိုင်ဒီယာ ခမ်းခြောက်နေပါသလား? ကမ္ဘာတစ်ဝှမ်းမှ ထူးဆန်းသော၊ လျှို့ဝှက်ဆန်းကြယ်သော အကြောင်းအရာများကို AI ထံမှ တောင်းယူပါ။")
+    
+    lore_type = st.radio("ဘာအကြောင်း ရှာချင်လဲ?", ["သမိုင်းဝင် လျှို့ဝှက်ချက်များ", "ဒဏ္ဍာရီလာ သတ္တဝါများ", "ထူးဆန်းသော မှုခင်း/အဖြစ်အပျက်ဟောင်းများ"])
+    
+    if st.button("🔍 ရှားပါး အိုင်ဒီယာ ၃ ခု ရှာဖွေရန်", type="primary"):
+        if api_key:
+            with st.spinner("အမှောင်ထုထဲတွင် လျှို့ဝှက်ချက်များကို ရှာဖွေနေပါသည်... ⏳"):
+                lore_prompt = f"""
+                Act as a master researcher of the macabre and obscure. 
+                Find 3 highly obscure, creepy, or deeply mysterious historical facts/legends related to: '{lore_type}'.
+                Do NOT give common ones (like Titanic, Jack the Ripper, etc). Give very rare, unsettling, and poetic ones.
+                Translate the facts into purely engaging BURMESE language. 
+                Format:
+                1. [Title in Burmese]
+                [Short description of the event/legend - 2 sentences]
+                [Why it makes a good Gothic/Mystery Story - 1 sentence]
+                """
+                lore_ideas = generate_content_safe(lore_prompt)
+                st.success("✅ အိုင်ဒီယာ အသစ်များ ရရှိပါပြီ!")
+                st.markdown(lore_ideas)
+        else:
+            st.warning("⚠️ ကျေးဇူးပြု၍ API Key အရင်ထည့်ပါ။")
+
+    st.write("---")
+
+    # ==========================================
+    # 🌍 အပိုင်း (၂): YouTube Channel များမှ ခြေရာခံခြင်း
+    # ==========================================
+    st.subheader("🌍 World Explorer (ကမ္ဘာ့အဆင့် မှတ်တမ်းတင် Channel များ)")
+    st.write("Nat Geo, Discovery ကဲ့သို့သော နာမည်ကြီး Channel များမှ နောက်ဆုံးတင်ထားသော ဗီဒီယိုများကို ခြေရာခံပါ။")
+    
+    explorer_channels = {
+        "National Geographic": "https://www.youtube.com/@NatGeo/videos",
+        "Nat Geo WILD": "https://www.youtube.com/@NatGeoWild/videos",
+        "Discovery Channel": "https://www.youtube.com/@Discovery/videos",
+        "BBC Earth": "https://www.youtube.com/@bbcearth/videos",
+        "Brave Wilderness": "https://www.youtube.com/@BraveWilderness/videos",
+        "Kurzgesagt – In a Nutshell": "https://www.youtube.com/@kurzgesagt/videos",
+        "MrBallen (Mysteries)": "https://www.youtube.com/@MrBallen/videos",
+        "Custom URL ကိုယ်တိုင်ထည့်ရန်": "custom"
+    }
+    
+    selected_channel = st.selectbox("📌 လေ့လာလိုသော Channel ကို ရွေးပါ:", list(explorer_channels.keys()))
+    
+    if selected_channel == "Custom URL ကိုယ်တိုင်ထည့်ရန်":
+        channel_url = st.text_input("YouTube Channel URL ထည့်ပါ (ဥပမာ - https://www.youtube.com/@ChannelName/videos):")
+    else:
+        channel_url = explorer_channels[selected_channel]
+
+    if st.button("📡 နောက်ဆုံး ဗီဒီယို (၃) ခုကို စစ်ဆေးမည်", use_container_width=True):
         if channel_url:
-            with st.spinner("Fetching..."):
+            with st.spinner(f"{selected_channel} မှ ဗီဒီယိုများကို ဆွဲယူနေပါသည်..."):
                 try:
+                    # 💡 extract_flat ကိုသုံးပြီး ဗီဒီယိုများကို အမြန်ဆွဲယူမည်
                     ydl_opts = {'extract_flat': True, 'playlist_items': '1:3', 'quiet': True}
                     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                         info = ydl.extract_info(channel_url, download=False)
-                        for entry in info.get('entries', []):
-                            st.write(f"- **{entry.get('title')}** (https://youtube.com/watch?v={entry.get('id')})")
+                        entries = info.get('entries', [])
+                        
+                        if not entries:
+                            st.warning("⚠️ ဗီဒီယို အသစ်များ မတွေ့ရှိပါ။ (URL အဆုံးတွင် '/videos' ပါ/မပါ စစ်ဆေးပါ)")
+                        else:
+                            st.success("✅ နောက်ဆုံးရ ဗီဒီယိုများ ရရှိပါပြီ!")
+                            for entry in entries:
+                                title = entry.get('title', 'Unknown Title')
+                                vid_id = entry.get('id', '')
+                                link = f"https://youtube.com/watch?v={vid_id}"
+                                st.write(f"🎬 **{title}**\n🔗 [ဒီမှာ နှိပ်၍ ကြည့်ပါ]({link})")
+                                
                 except Exception as e:
-                    st.error(f"Error: {e}")
+                    st.error(f"⚠️ Error: ဤ Channel ကို ဖတ်၍မရပါ။ လင့်ခ်မှန်ကန်မှု စစ်ဆေးပါ။ ({e})")
 
 elif selected_menu == "🎨 Visual Director":
     st.header("🚀 SEO & Captions Studio")
@@ -313,4 +377,5 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
