@@ -75,45 +75,74 @@ def clean_script_text(script):
     return "\n\n".join(cleaned_parts)
 
 # 💡 YouTube Downloader (Cookie + Delay + iOS Bypass ပေါင်းစပ်ထားသော နောက်ဆုံး Version)
-import requests # အပေါ်ဆုံးမှာ ရှိနေရပါမယ်
+# 💡 စိတ်ချရသော Proxy Instance များစာရင်း
+PIPED_INSTANCES = [
+    "https://pipedapi.kavin.rocks",
+    "https://pipedapi.adminforge.de",
+    "https://api-piped.mha.fi",
+    "https://piped-api.lunar.icu"
+]
 
 def download_audio_from_youtube(url):
-    # Video ID ကို ထုတ်ယူခြင်း
+    # Video ID ထုတ်ယူခြင်း
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
     
-    # 💡 Piped API (Proxy) - YouTube IP Ban ကို ကျော်သည့်စနစ်
-    api_url = f"https://pipedapi.kavin.rocks/streams/{video_id}"
-    
-    try:
-        res = requests.get(api_url).json()
-        # Audio Stream ထဲကမှ အကောင်းဆုံး တစ်ခုကို ယူမည်
-        audio_stream = [s for s in res.get('audioStreams', []) if s.get('format') in ['M4A', 'WEB_M_OPUS']][0]
-        audio_url = audio_stream['url']
-        
-        # ဖိုင်ကို တိုက်ရိုက် ဒေါင်းလုဒ်ဆွဲခြင်း
-        file_data = requests.get(audio_url).content
-        with open("downloaded_audio.mp3", "wb") as f:
-            f.write(file_data)
-        return "downloaded_audio.mp3"
-    except Exception as e:
-        raise Exception(f"Proxy API Error: {str(e)}")
+    last_error = ""
+    for instance in PIPED_INSTANCES:
+        try:
+            api_url = f"{instance}/streams/{video_id}"
+            res = requests.get(api_url, timeout=10)
+            
+            if res.status_code != 200: continue
+            
+            data = res.json()
+            # Audio Stream ထဲကမှ M4A သို့မဟုတ် အကောင်းဆုံးကို ယူမည်
+            streams = data.get('audioStreams', [])
+            if not streams: continue
+            
+            audio_url = streams[0]['url']
+            file_data = requests.get(audio_url, timeout=20).content
+            
+            with open("downloaded_audio.mp3", "wb") as f:
+                f.write(file_data)
+            return "downloaded_audio.mp3"
+            
+        except Exception as e:
+            last_error = str(e)
+            continue # နောက်ထပ် Instance တစ်ခုကို ထပ်စမ်းမည်
+            
+    raise Exception(f"Proxy အားလုံး အလုပ်မလုပ်ပါ: {last_error}")
 
 def download_video_from_youtube(url):
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
-    api_url = f"https://pipedapi.kavin.rocks/streams/{video_id}"
     
-    try:
-        res = requests.get(api_url).json()
-        # Video Stream ထဲကမှ MP4 format ကို ရှာမည်
-        video_stream = [v for v in res.get('videoStreams', []) if v.get('format') == 'MP4' and v.get('videoOnly') == False][0]
-        video_url = video_stream['url']
-        
-        file_data = requests.get(video_url).content
-        with open("downloaded_video.mp4", "wb") as f:
-            f.write(file_data)
-        return "downloaded_video.mp4"
-    except Exception as e:
-        raise Exception(f"Proxy API Error: {str(e)}")
+    last_error = ""
+    for instance in PIPED_INSTANCES:
+        try:
+            api_url = f"{instance}/streams/{video_id}"
+            res = requests.get(api_url, timeout=10)
+            
+            if res.status_code != 200: continue
+            
+            data = res.json()
+            # Video + Audio ပါပြီးသား MP4 ကို ရှာမည်
+            streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False and v.get('format') == 'MP4']
+            if not streams: streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False] # MP4 မရှိရင် ရတာယူ
+            
+            if not streams: continue
+            
+            video_url = streams[0]['url']
+            file_data = requests.get(video_url, timeout=30).content
+            
+            with open("downloaded_video.mp4", "wb") as f:
+                f.write(file_data)
+            return "downloaded_video.mp4"
+            
+        except Exception as e:
+            last_error = str(e)
+            continue
+            
+    raise Exception(f"Proxy အားလုံး အလုပ်မလုပ်ပါ: {last_error}")
 
 def generate_content_safe(prompt, media_file=None):
     models_to_try = ["models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-flash-latest"]
@@ -227,6 +256,7 @@ elif selected_menu == "🎙️ Audio Studio":
 # --- (Other Menus follow similar pattern: 🦁 Smart Translator, 📚 Memory Vault, etc.) ---
 else:
     st.info(f"Welcome to {selected_menu}! Section is ready for action.")
+
 
 
 
