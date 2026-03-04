@@ -1,7 +1,6 @@
 streamlit
 google-generativeai
+youtube-transcript-api
 yt-dlp
 edge-tts
 streamlit-audiorec
-requests
-
