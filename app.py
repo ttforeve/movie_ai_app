@@ -74,42 +74,44 @@ def clean_script_text(script):
                 cleaned_parts.append(line)
     return "\n\n".join(cleaned_parts)
 
-# 💡 YouTube Downloader (Cookie + Delay + iOS Bypass ပေါင်းစပ်ထားသော နောက်ဆုံး Version)
-# 💡 စိတ်ချရသော Proxy Instance များစာရင်း
+# 💡 ၂၀၂၆ ခုနှစ်အတွက် အလုပ်လုပ်ဆုံး Proxy Instance များ (သေချာ စစ်ဆေးပြီး)
 PIPED_INSTANCES = [
     "https://pipedapi.kavin.rocks",
-    "https://pipedapi.adminforge.de",
+    "https://pipedapi.moomoo.me",
     "https://api-piped.mha.fi",
+    "https://pipedapi.adminforge.de",
     "https://piped-api.lunar.icu"
 ]
 
 def download_audio_from_youtube(url):
-    # Video ID ထုတ်ယူခြင်း
+    # Video ID ကို တိကျစွာ ထုတ်ယူခြင်း
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
     
     last_error = ""
     for instance in PIPED_INSTANCES:
         try:
-            api_url = f"{instance}/streams/{video_id}"
-            res = requests.get(api_url, timeout=10)
+            # 💡 URL ကို ပိုမိုတိကျစွာ ပေါင်းစပ်ခြင်း
+            base_url = instance.strip("/")
+            api_url = f"{base_url}/streams/{video_id}"
             
+            res = requests.get(api_url, timeout=12)
             if res.status_code != 200: continue
             
             data = res.json()
-            # Audio Stream ထဲကမှ M4A သို့မဟုတ် အကောင်းဆုံးကို ယူမည်
-            streams = data.get('audioStreams', [])
-            if not streams: continue
+            audio_streams = data.get('audioStreams', [])
+            if not audio_streams: continue
             
-            audio_url = streams[0]['url']
-            file_data = requests.get(audio_url, timeout=20).content
+            # အကောင်းဆုံး audio link ကို ယူမည်
+            audio_link = audio_streams[0]['url']
+            audio_data = requests.get(audio_link, timeout=25).content
             
             with open("downloaded_audio.mp3", "wb") as f:
-                f.write(file_data)
+                f.write(audio_data)
             return "downloaded_audio.mp3"
             
         except Exception as e:
             last_error = str(e)
-            continue # နောက်ထပ် Instance တစ်ခုကို ထပ်စမ်းမည်
+            continue
             
     raise Exception(f"Proxy အားလုံး အလုပ်မလုပ်ပါ: {last_error}")
 
@@ -119,23 +121,27 @@ def download_video_from_youtube(url):
     last_error = ""
     for instance in PIPED_INSTANCES:
         try:
-            api_url = f"{instance}/streams/{video_id}"
-            res = requests.get(api_url, timeout=10)
+            base_url = instance.strip("/")
+            api_url = f"{base_url}/streams/{video_id}"
             
+            res = requests.get(api_url, timeout=12)
             if res.status_code != 200: continue
             
             data = res.json()
-            # Video + Audio ပါပြီးသား MP4 ကို ရှာမည်
-            streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False and v.get('format') == 'MP4']
-            if not streams: streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False] # MP4 မရှိရင် ရတာယူ
+            # MP4 format နဲ့ ရုပ်ရောအသံရော ပါတာကို အရင်ရှာမည်
+            video_streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False and v.get('format') == 'MP4']
             
-            if not streams: continue
+            if not video_streams:
+                # MP4 မရှိရင် ရတဲ့ format နဲ့ ရုပ်ရောအသံရော ပါတာကို ယူမည်
+                video_streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False]
+
+            if not video_streams: continue
             
-            video_url = streams[0]['url']
-            file_data = requests.get(video_url, timeout=30).content
+            video_link = video_streams[0]['url']
+            video_data = requests.get(video_link, timeout=35).content
             
             with open("downloaded_video.mp4", "wb") as f:
-                f.write(file_data)
+                f.write(video_data)
             return "downloaded_video.mp4"
             
         except Exception as e:
@@ -256,6 +262,7 @@ elif selected_menu == "🎙️ Audio Studio":
 # --- (Other Menus follow similar pattern: 🦁 Smart Translator, 📚 Memory Vault, etc.) ---
 else:
     st.info(f"Welcome to {selected_menu}! Section is ready for action.")
+
 
 
 
