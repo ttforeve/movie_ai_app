@@ -75,30 +75,25 @@ def clean_script_text(script):
 
 # 💡 YouTube Downloader (Cookie + Delay + iOS Bypass ပေါင်းစပ်ထားသော နောက်ဆုံး Version)
 def download_audio_from_youtube(url):
-    if not os.path.exists("youtube_cookies.txt"):
-        raise Exception("Cookie file မတွေ့ပါ။")
-
-    ydl_opts = {
-        # 💡 ရုပ်ရောအသံရောပါတဲ့ ဖိုင်ထဲကနေ အသံကိုပဲ ဆွဲထုတ်ခိုင်းမည်
-        'format': 'bestaudio/best', 
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'outtmpl': 'downloaded_audio.%(ext)s',
-        'quiet': True,
-        'noplaylist': True,
-        'cookiefile': 'youtube_cookies.txt',
-        'nocheckcertificate': True,
-    }
+    # YouTube Video ID ကို ထုတ်ယူခြင်း
+    video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
+    
+    # 💡 Piped API (Proxy) ကို သုံး၍ အသံဖိုင်လင့်ခ်ကို တိုက်ရိုက်ယူခြင်း
+    api_url = f"https://pipedapi.kavin.rocks/streams/{video_id}"
+    
     try:
-        if os.path.exists("downloaded_audio.mp3"): os.remove("downloaded_audio.mp3")
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
-            ydl.download([url])
+        res = requests.get(api_url).json()
+        # အသံဖိုင်များထဲမှ အကောင်းဆုံးကို ရွေးချယ်ခြင်း
+        audio_stream = [s for s in res['audioStreams'] if s['format'] == 'M4A' or s['format'] == 'WEB_M_OPUS'][0]
+        audio_url = audio_stream['url']
+        
+        # ဖိုင်ကို တိုက်ရိုက် ဒေါင်းလုဒ်ဆွဲခြင်း
+        file_data = requests.get(audio_url).content
+        with open("downloaded_audio.mp3", "wb") as f:
+            f.write(file_data)
         return "downloaded_audio.mp3"
     except Exception as e:
-        raise Exception(f"YouTube Error: {str(e)}")
+        raise Exception(f"Proxy API Error: {str(e)}")
 
 def download_video_from_youtube(url):
     if not os.path.exists("youtube_cookies.txt"):
@@ -233,6 +228,7 @@ elif selected_menu == "🎙️ Audio Studio":
 # --- (Other Menus follow similar pattern: 🦁 Smart Translator, 📚 Memory Vault, etc.) ---
 else:
     st.info(f"Welcome to {selected_menu}! Section is ready for action.")
+
 
 
 
