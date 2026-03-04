@@ -329,14 +329,37 @@ elif selected_menu == "🕵️‍♂️ Lore Hunter":
     st.write("Nat Geo, Discovery ကဲ့သို့သော နာမည်ကြီး Channel များမှ နောက်ဆုံးတင်ထားသော ဗီဒီယိုများကို ခြေရာခံပါ။")
     
     explorer_channels = {
+        # 🌿 သဘာဝတရား နှင့် တိရစ္ဆာန်များ (Nature & Wildlife)
         "National Geographic": "https://www.youtube.com/@NatGeo/videos",
-        "Nat Geo WILD": "https://www.youtube.com/@NatGeoWild/videos",
+        "Nat Geo WILD (Animals)": "https://www.youtube.com/@NatGeoAnimals/videos", # 💡 Handle အသစ် ပြင်ထားသည်
         "Discovery Channel": "https://www.youtube.com/@Discovery/videos",
         "BBC Earth": "https://www.youtube.com/@bbcearth/videos",
+        "Animal Planet": "https://www.youtube.com/@AnimalPlanet/videos",
+        "Free Documentary (Nature)": "https://www.youtube.com/@FreeDocumentaryNature/videos",
+        "Real Wild (Wildlife Docs)": "https://www.youtube.com/@RealWild/videos", # 💡 အသစ် - တောရိုင်းတိရစ္ဆာန် အမိုက်စား Channel ကြီး
         "Brave Wilderness": "https://www.youtube.com/@BraveWilderness/videos",
+        "Animalogic": "https://www.youtube.com/@Animalogic/videos",
+
+        # 🚀 သိပ္ပံ၊ အာကာသ နှင့် စိတ်ဝင်စားဖွယ်ရာများ (Science & Mind-Blowing Facts)
         "Kurzgesagt – In a Nutshell": "https://www.youtube.com/@kurzgesagt/videos",
-        "MrBallen (Mysteries)": "https://www.youtube.com/@MrBallen/videos",
-        "Custom URL ကိုယ်တိုင်ထည့်ရန်": "custom"
+        "Veritasium": "https://www.youtube.com/@veritasium/videos",
+        "Vsauce": "https://www.youtube.com/@Vsauce/videos",
+        "NASA": "https://www.youtube.com/@NASA/videos",
+
+        # 📜 သမိုင်း နှင့် ဒဏ္ဍာရီ (History, Epic Myths & Stories)
+        "Smithsonian Channel": "https://www.youtube.com/@SmithsonianChannel/videos",
+        "Timeline - World History": "https://www.youtube.com/@TimelineChannel/videos",
+        "TED-Ed (Animation & Stories)": "https://www.youtube.com/@TEDEd/videos",
+        "Fall of Civilizations": "https://www.youtube.com/@FallofCivilizations/videos",
+
+        # 🕵️‍♂️ မှုခင်း နှင့် လျှို့ဝှက်ဆန်းကြယ် (Mystery, True Crime & Dark Lore)
+        "MrBallen (Strange & Dark Stories)": "https://www.youtube.com/@MrBallen/videos",
+        "Nexpo (Internet Mysteries)": "https://www.youtube.com/@Nexpo/videos",
+        "LEMMiNO (Deep Dive Documentaries)": "https://www.youtube.com/@LEMMiNO/videos",
+        
+        # 🧠 အထွေထွေ ဗဟုသုတ နှင့် ဘဝခွန်အားပေး (Deep Dives & Society)
+        "Vox": "https://www.youtube.com/@Vox/videos",
+        "WIRED": "https://www.youtube.com/@WIRED/videos"
     }
     
     selected_channel = st.selectbox("📌 လေ့လာလိုသော Channel ကို ရွေးပါ:", list(explorer_channels.keys()))
@@ -377,5 +400,6 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
