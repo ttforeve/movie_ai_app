@@ -74,81 +74,86 @@ def clean_script_text(script):
                 cleaned_parts.append(line)
     return "\n\n".join(cleaned_parts)
 
-# 💡 ၂၀၂၆ ခုနှစ်အတွက် အလုပ်လုပ်ဆုံး Proxy Instance များ (သေချာ စစ်ဆေးပြီး)
+import requests
+import os
+from urllib.parse import urljoin
+
+# 💡 ၂၀၂၆ အတွက် အကောင်းဆုံး Proxy များ (Piped + Cobalt Fallback)
+COBALT_URLS = [
+    "https://api.cobalt.tools",
+    "https://cobalt.api.ghst.xyz"
+]
+
 PIPED_INSTANCES = [
     "https://pipedapi.kavin.rocks",
-    "https://pipedapi.moomoo.me",
-    "https://api-piped.mha.fi",
     "https://pipedapi.adminforge.de",
-    "https://piped-api.lunar.icu"
+    "https://api-piped.mha.fi"
 ]
 
 def download_audio_from_youtube(url):
-    # Video ID ကို တိကျစွာ ထုတ်ယူခြင်း
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
     
-    last_error = ""
+    # 🎯 အဆင့် ၁: Cobalt API ဖြင့် အရင်စမ်းမည် (ပိုမြန်၊ ပိုသေချာ)
+    for cobalt in COBALT_URLS:
+        try:
+            headers = {"Accept": "application/json", "Content-Type": "application/json"}
+            payload = {"url": url, "downloadMode": "audio", "audioFormat": "mp3"}
+            res = requests.post(cobalt, json=payload, headers=headers, timeout=15)
+            if res.status_code == 200:
+                audio_url = res.json().get('url')
+                if audio_url:
+                    data = requests.get(audio_url, timeout=30).content
+                    with open("downloaded_audio.mp3", "wb") as f: f.write(data)
+                    return "downloaded_audio.mp3"
+        except: continue
+
+    # 🎯 အဆင့် ၂: Piped API ဖြင့် Fallback စမ်းမည်
     for instance in PIPED_INSTANCES:
         try:
-            # 💡 URL ကို ပိုမိုတိကျစွာ ပေါင်းစပ်ခြင်း
-            base_url = instance.strip("/")
-            api_url = f"{base_url}/streams/{video_id}"
-            
+            api_url = f"{instance.rstrip('/')}/streams/{video_id}"
             res = requests.get(api_url, timeout=12)
-            if res.status_code != 200: continue
+            if res.status_code == 200:
+                data = res.json()
+                audio_link = data['audioStreams'][0]['url']
+                audio_data = requests.get(audio_link, timeout=25).content
+                with open("downloaded_audio.mp3", "wb") as f: f.write(audio_data)
+                return "downloaded_audio.mp3"
+        except: continue
             
-            data = res.json()
-            audio_streams = data.get('audioStreams', [])
-            if not audio_streams: continue
-            
-            # အကောင်းဆုံး audio link ကို ယူမည်
-            audio_link = audio_streams[0]['url']
-            audio_data = requests.get(audio_link, timeout=25).content
-            
-            with open("downloaded_audio.mp3", "wb") as f:
-                f.write(audio_data)
-            return "downloaded_audio.mp3"
-            
-        except Exception as e:
-            last_error = str(e)
-            continue
-            
-    raise Exception(f"Proxy အားလုံး အလုပ်မလုပ်ပါ: {last_error}")
+    raise Exception("YouTube 403 ကို ကျော်ဖြတ်ရန် Proxy အားလုံး မအောင်မြင်ပါ။")
 
 def download_video_from_youtube(url):
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
     
-    last_error = ""
+    # 🎯 အဆင့် ၁: Cobalt API ဖြင့် အရင်စမ်းမည်
+    for cobalt in COBALT_URLS:
+        try:
+            headers = {"Accept": "application/json", "Content-Type": "application/json"}
+            payload = {"url": url, "downloadMode": "video", "videoQuality": "720"}
+            res = requests.post(cobalt, json=payload, headers=headers, timeout=15)
+            if res.status_code == 200:
+                video_url = res.json().get('url')
+                if video_url:
+                    data = requests.get(video_url, timeout=40).content
+                    with open("downloaded_video.mp4", "wb") as f: f.write(data)
+                    return "downloaded_video.mp4"
+        except: continue
+
+    # 🎯 အဆင့် ၂: Piped API ဖြင့် Fallback စမ်းမည်
     for instance in PIPED_INSTANCES:
         try:
-            base_url = instance.strip("/")
-            api_url = f"{base_url}/streams/{video_id}"
-            
+            api_url = f"{instance.rstrip('/')}/streams/{video_id}"
             res = requests.get(api_url, timeout=12)
-            if res.status_code != 200: continue
+            if res.status_code == 200:
+                data = res.json()
+                video_streams = [v for v in data['videoStreams'] if v['videoOnly'] == False]
+                video_link = video_streams[0]['url']
+                video_data = requests.get(video_link, timeout=40).content
+                with open("downloaded_video.mp4", "wb") as f: f.write(video_data)
+                return "downloaded_video.mp4"
+        except: continue
             
-            data = res.json()
-            # MP4 format နဲ့ ရုပ်ရောအသံရော ပါတာကို အရင်ရှာမည်
-            video_streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False and v.get('format') == 'MP4']
-            
-            if not video_streams:
-                # MP4 မရှိရင် ရတဲ့ format နဲ့ ရုပ်ရောအသံရော ပါတာကို ယူမည်
-                video_streams = [v for v in data.get('videoStreams', []) if v.get('videoOnly') == False]
-
-            if not video_streams: continue
-            
-            video_link = video_streams[0]['url']
-            video_data = requests.get(video_link, timeout=35).content
-            
-            with open("downloaded_video.mp4", "wb") as f:
-                f.write(video_data)
-            return "downloaded_video.mp4"
-            
-        except Exception as e:
-            last_error = str(e)
-            continue
-            
-    raise Exception(f"Proxy အားလုံး အလုပ်မလုပ်ပါ: {last_error}")
+    raise Exception("Proxy အားလုံး မအောင်မြင်ပါ။")
 
 def generate_content_safe(prompt, media_file=None):
     models_to_try = ["models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-flash-latest"]
@@ -262,6 +267,7 @@ elif selected_menu == "🎙️ Audio Studio":
 # --- (Other Menus follow similar pattern: 🦁 Smart Translator, 📚 Memory Vault, etc.) ---
 else:
     st.info(f"Welcome to {selected_menu}! Section is ready for action.")
+
 
 
 
