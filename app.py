@@ -76,11 +76,11 @@ def clean_script_text(script):
 # 💡 YouTube Downloader (Cookie + Delay + iOS Bypass ပေါင်းစပ်ထားသော နောက်ဆုံး Version)
 def download_audio_from_youtube(url):
     if not os.path.exists("youtube_cookies.txt"):
-        raise Exception("Cookie file မတွေ့ပါ။")
+        raise Exception("Cookie file (youtube_cookies.txt) မတွေ့ပါ။ GitHub မှာ တင်ထားတာ သေချာပါစေ။")
 
     ydl_opts = {
-        # 💡 format ကို အသေမသတ်မှတ်ဘဲ အကောင်းဆုံး အသံဖိုင်ကိုပဲ ရှာခိုင်းမည်
-        'format': 'bestaudio/best', 
+        # 💡 format ကို 'ba/b' (best audio သို့မဟုတ် ရသမျှထဲက အကောင်းဆုံး) လို့ ပြောင်းထားသည်
+        'format': 'ba/b',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -88,11 +88,12 @@ def download_audio_from_youtube(url):
         }],
         'outtmpl': 'downloaded_audio.%(ext)s',
         'quiet': True,
+        'noplaylist': True,
         'cookiefile': 'youtube_cookies.txt',
         'nocheckcertificate': True,
-        'ignoreerrors': True, # 💡 Error အသေးအမွှားလေးတွေကို ကျော်ခိုင်းမည်
+        # 💡 Client တွေကို ပိုစုံအောင် ထည့်ပေးလိုက်သည်
+        'extractor_args': {'youtube': {'player_client': ['android', 'ios', 'web', 'mweb']}},
     }
-    
     try:
         if os.path.exists("downloaded_audio.mp3"): os.remove("downloaded_audio.mp3")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
@@ -103,18 +104,18 @@ def download_audio_from_youtube(url):
 
 def download_video_from_youtube(url):
     if not os.path.exists("youtube_cookies.txt"):
-        raise Exception("Cookie file မတွေ့ပါ။")
+        raise Exception("Cookie file (youtube_cookies.txt) မတွေ့ပါ။")
 
     ydl_opts = {
-        # 💡 MP4 မရှိရင်လည်း ရတဲ့ Format နဲ့ အကောင်းဆုံး ဒေါင်းခိုင်းမည်
-        'format': 'bestvideo+bestaudio/best', 
+        # 💡 format ကို 'b/bv+ba' (ရသမျှထဲက အကောင်းဆုံး) လို့ အကြမ်းဆုံး ပြောင်းထားသည်
+        'format': 'b/bv+ba',
         'outtmpl': 'downloaded_video.%(ext)s',
         'cookiefile': 'youtube_cookies.txt',
         'nocheckcertificate': True,
         'quiet': True,
-        'merge_output_format': 'mp4', # 💡 ရလာတာတွေကို MP4 အဖြစ် ပေါင်းခိုင်းမည်
+        'merge_output_format': 'mp4',
+        'extractor_args': {'youtube': {'player_client': ['android', 'ios', 'web', 'mweb']}},
     }
-    
     try:
         if os.path.exists("downloaded_video.mp4"): os.remove("downloaded_video.mp4")
         with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
@@ -235,4 +236,5 @@ elif selected_menu == "🎙️ Audio Studio":
 # --- (Other Menus follow similar pattern: 🦁 Smart Translator, 📚 Memory Vault, etc.) ---
 else:
     st.info(f"Welcome to {selected_menu}! Section is ready for action.")
+
 
