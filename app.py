@@ -78,27 +78,38 @@ import requests
 import os
 from urllib.parse import urljoin
 
-# 💡 ၂၀၂၆ အတွက် အကောင်းဆုံး Proxy များ (Piped + Cobalt Fallback)
-COBALT_URLS = [
+import requests
+import os
+import time
+
+# 💡 ၂၀၂၆ အတွက် အလုပ်လုပ်ဆုံး Global Proxy များ စုစည်းမှု
+COBALT_INSTANCES = [
     "https://api.cobalt.tools",
-    "https://cobalt.api.ghst.xyz"
+    "https://cobalt.api.ghst.xyz",
+    "https://api.geronimo.xyz"
 ]
 
 PIPED_INSTANCES = [
     "https://pipedapi.kavin.rocks",
     "https://pipedapi.adminforge.de",
-    "https://api-piped.mha.fi"
+    "https://api-piped.mha.fi",
+    "https://pipedapi.astartes.nl"
+]
+
+INVIDIOUS_INSTANCES = [
+    "https://invidious.snopyta.org",
+    "https://yewtu.be",
+    "https://inv.vern.cc"
 ]
 
 def download_audio_from_youtube(url):
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
     
-    # 🎯 အဆင့် ၁: Cobalt API ဖြင့် အရင်စမ်းမည် (ပိုမြန်၊ ပိုသေချာ)
-    for cobalt in COBALT_URLS:
+    # 🎯 အဆင့် ၁: Cobalt API များဖြင့် အရင်စမ်းမည်
+    for cobalt in COBALT_INSTANCES:
         try:
-            headers = {"Accept": "application/json", "Content-Type": "application/json"}
             payload = {"url": url, "downloadMode": "audio", "audioFormat": "mp3"}
-            res = requests.post(cobalt, json=payload, headers=headers, timeout=15)
+            res = requests.post(cobalt, json=payload, headers={"Accept": "application/json"}, timeout=10)
             if res.status_code == 200:
                 audio_url = res.json().get('url')
                 if audio_url:
@@ -107,30 +118,40 @@ def download_audio_from_youtube(url):
                     return "downloaded_audio.mp3"
         except: continue
 
-    # 🎯 အဆင့် ၂: Piped API ဖြင့် Fallback စမ်းမည်
-    for instance in PIPED_INSTANCES:
+    # 🎯 အဆင့် ၂: Piped API များဖြင့် Fallback စမ်းမည်
+    for piped in PIPED_INSTANCES:
         try:
-            api_url = f"{instance.rstrip('/')}/streams/{video_id}"
-            res = requests.get(api_url, timeout=12)
+            res = requests.get(f"{piped.rstrip('/')}/streams/{video_id}", timeout=10)
             if res.status_code == 200:
-                data = res.json()
-                audio_link = data['audioStreams'][0]['url']
-                audio_data = requests.get(audio_link, timeout=25).content
-                with open("downloaded_audio.mp3", "wb") as f: f.write(audio_data)
+                audio_url = res.json()['audioStreams'][0]['url']
+                data = requests.get(audio_url, timeout=25).content
+                with open("downloaded_audio.mp3", "wb") as f: f.write(data)
+                return "downloaded_audio.mp3"
+        except: continue
+
+    # 🎯 အဆင့် ၃: Invidious API ဖြင့် နောက်ဆုံးပိတ် စမ်းမည်
+    for inv in INVIDIOUS_INSTANCES:
+        try:
+            res = requests.get(f"{inv.rstrip('/')}/api/v1/videos/{video_id}", timeout=10)
+            if res.status_code == 200:
+                # အကောင်းဆုံး audio format ကို ရှာဖွေခြင်း
+                audio_streams = res.json().get('adaptiveFormats', [])
+                audio_url = [s['url'] for s in audio_streams if "audio/" in s['type']][0]
+                data = requests.get(audio_url, timeout=25).content
+                with open("downloaded_audio.mp3", "wb") as f: f.write(data)
                 return "downloaded_audio.mp3"
         except: continue
             
-    raise Exception("YouTube 403 ကို ကျော်ဖြတ်ရန် Proxy အားလုံး မအောင်မြင်ပါ။")
+    raise Exception("Proxy အားလုံး (Cobalt, Piped, Invidious) ပိတ်ဆို့ခံထားရပါသည်။ ကျေးဇူးပြု၍ ခဏနားပြီးမှ ပြန်စမ်းပါ။")
 
 def download_video_from_youtube(url):
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
     
-    # 🎯 အဆင့် ၁: Cobalt API ဖြင့် အရင်စမ်းမည်
-    for cobalt in COBALT_URLS:
+    # 🎯 Cobalt Video Mode
+    for cobalt in COBALT_INSTANCES:
         try:
-            headers = {"Accept": "application/json", "Content-Type": "application/json"}
             payload = {"url": url, "downloadMode": "video", "videoQuality": "720"}
-            res = requests.post(cobalt, json=payload, headers=headers, timeout=15)
+            res = requests.post(cobalt, json=payload, headers={"Accept": "application/json"}, timeout=10)
             if res.status_code == 200:
                 video_url = res.json().get('url')
                 if video_url:
@@ -139,35 +160,19 @@ def download_video_from_youtube(url):
                     return "downloaded_video.mp4"
         except: continue
 
-    # 🎯 အဆင့် ၂: Piped API ဖြင့် Fallback စမ်းမည်
-    for instance in PIPED_INSTANCES:
+    # 🎯 Piped Video Fallback
+    for piped in PIPED_INSTANCES:
         try:
-            api_url = f"{instance.rstrip('/')}/streams/{video_id}"
-            res = requests.get(api_url, timeout=12)
+            res = requests.get(f"{piped.rstrip('/')}/streams/{video_id}", timeout=10)
             if res.status_code == 200:
-                data = res.json()
-                video_streams = [v for v in data['videoStreams'] if v['videoOnly'] == False]
-                video_link = video_streams[0]['url']
-                video_data = requests.get(video_link, timeout=40).content
-                with open("downloaded_video.mp4", "wb") as f: f.write(video_data)
+                video_streams = [v for v in res.json()['videoStreams'] if v['videoOnly'] == False]
+                video_url = video_streams[0]['url']
+                data = requests.get(video_url, timeout=40).content
+                with open("downloaded_video.mp4", "wb") as f: f.write(data)
                 return "downloaded_video.mp4"
         except: continue
             
-    raise Exception("Proxy အားလုံး မအောင်မြင်ပါ။")
-
-def generate_content_safe(prompt, media_file=None):
-    models_to_try = ["models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-flash-latest"]
-    errors = []
-    for m in models_to_try:
-        try:
-            model = genai.GenerativeModel(m)
-            cfg = {"temperature": 0.7, "max_output_tokens": 8192}
-            if media_file: return model.generate_content([media_file, prompt], generation_config=cfg).text
-            return model.generate_content(prompt, generation_config=cfg).text
-        except Exception as e:
-            errors.append(f"{m}: {str(e)}")
-            continue 
-    return f"⚠️ Error: All models failed. Check API Key.\nLogs: {errors[0]}"
+    raise Exception("ဗီဒီယိုဒေါင်းလုဒ်လုပ်ရန် Proxy အားလုံး မအောင်မြင်ပါ။")
 
 SRT_PROMPT = """Task: Listen to the media and generate a standard .SRT subtitle file in original language. 
 RULE 1: NO dialogue = reply ONLY 'NO_SPEECH_DETECTED'.
@@ -267,6 +272,7 @@ elif selected_menu == "🎙️ Audio Studio":
 # --- (Other Menus follow similar pattern: 🦁 Smart Translator, 📚 Memory Vault, etc.) ---
 else:
     st.info(f"Welcome to {selected_menu}! Section is ready for action.")
+
 
 
 
