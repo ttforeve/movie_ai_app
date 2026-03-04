@@ -100,7 +100,7 @@ def clean_script_text(script):
 import yt_dlp # requests အစား yt-dlp ကိုပဲ ပြန်သုံးမည်
 
 # ==========================================
-# 💡 YouTube Download (Anti-Bot Bypass System)
+# 🚀 YouTube Download (Triple Bypass System - 2026 Edition)
 # ==========================================
 def download_audio_from_youtube(url):
     ydl_opts = {
@@ -109,10 +109,19 @@ def download_audio_from_youtube(url):
         'outtmpl': 'downloaded_audio.%(ext)s',
         'quiet': True,
         'noplaylist': True,
-        # 💡 YouTube ကို လှည့်စားရန် Android ဖုန်း အယောင်ဆောင်ခြင်း (Bypass)
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        'nocheckcertificate': True, # Certificate စစ်တာကို ကျော်မည်
+        # 💡 iOS နှင့် Mobile Web Client ကို ပေါင်းသုံးခြင်း (403 ကျော်ရန် အကောင်းဆုံးနည်း)
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios', 'mweb', 'android'],
+                'skip': ['hls', 'dash']
+            }
+        },
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 11; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.210 Mobile Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-us,en;q=0.5',
+            'Sec-Fetch-Mode': 'navigate',
         }
     }
     try:
@@ -121,7 +130,8 @@ def download_audio_from_youtube(url):
             ydl.download([url])
         return "downloaded_audio.mp3"
     except Exception as e:
-        raise Exception(f"YouTube Download Error: {e}")
+        # Error တက်ရင် ရှင်းရှင်းလင်းလင်း မြင်ရအောင်
+        raise Exception(f"YouTube 403 Blocked: {str(e)}")
 
 def download_video_from_youtube(url):
     ydl_opts = {
@@ -129,10 +139,15 @@ def download_video_from_youtube(url):
         'outtmpl': 'downloaded_video.%(ext)s',
         'quiet': True,
         'noplaylist': True,
-        # 💡 YouTube ကို လှည့်စားရန် Android ဖုန်း အယောင်ဆောင်ခြင်း (Bypass)
-        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        'nocheckcertificate': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['ios', 'mweb', 'android'],
+                'skip': ['hls', 'dash']
+            }
+        },
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 11; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.210 Mobile Safari/537.36'
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
         }
     }
     try:
@@ -141,7 +156,7 @@ def download_video_from_youtube(url):
             ydl.download([url])
         return "downloaded_video.mp4"
     except Exception as e:
-        raise Exception(f"YouTube Download Error: {e}")
+        raise Exception(f"YouTube 403 Blocked: {str(e)}")
 
 def generate_content_safe(prompt, media_file=None):
     models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
@@ -1122,3 +1137,4 @@ if selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")                
+
