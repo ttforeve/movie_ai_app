@@ -78,7 +78,7 @@ def fetch_youtube_smart_data(url):
     return data_collected
 
 def generate_content_safe(prompt, media_file=None):
-    models_to_try = ["models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-flash-latest"]
+    models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
     errors = []
     for m in models_to_try:
         try:
@@ -313,3 +313,4 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
