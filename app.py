@@ -224,10 +224,49 @@ elif selected_menu == "🔴 YouTube Master":
                         # 💡 ဒေါင်းလုဒ်မဆွဲဘဲ စာသားသက်သက်ကို ချက်ချင်း ယူမည့်စနစ်
                         smart_data = fetch_youtube_smart_data(yt_url)
                         
+                        # 💡 အမျိုးအစားအလိုက် AI ၏ ခံစားချက်ကို အတိအကျ ပုံသွင်းမည့် လမ်းညွှန်ချက်များ
+                        tone_rules = ""
+                        
+                        if "သရော်စာ" in yt_script_style:
+                            tone_rules = """
+                            🔴 EXTREME SARCASTIC & ROAST PROTOCOL:
+                            1. ACT AS: A cynical, witty, and slightly savage reviewer. DO NOT act like a documentary narrator or a monk preaching.
+                            2. HUMOR STYLE: Use heavy exaggeration, irony, and modern relatable jokes (e.g., comparing things to being broke, lazy, or toxic ex-lovers).
+                            3. NO PREACHING: NEVER give moral lessons, advice, or polite conclusions at the end. End with a sharp, sarcastic punchline.
+                            4. LANGUAGE: Use purely casual, everyday conversational Burmese (ပေါ့ပေါ့ပါးပါး အပြောစကား).
+                            """
+                        elif "Soulful" in yt_script_style:
+                            tone_rules = """
+                            🔴 SOULFUL PROTOCOL:
+                            ACT AS: A deeply empathetic storyteller. Focus on deep human emotions, struggles, empathy, and heartwarming life lessons. Use poetic and beautiful Burmese words.
+                            """
+                        elif "Mystery" in yt_script_style:
+                            tone_rules = """
+                            🔴 TRUE CRIME / MYSTERY PROTOCOL:
+                            ACT AS: A suspenseful true-crime detective or thriller narrator. Build tension slowly, use dark/creepy vocabulary, and keep the audience on edge.
+                            """
+                        elif "Recap" in yt_script_style:
+                            tone_rules = """
+                            🔴 CINEMATIC RECAP PROTOCOL:
+                            ACT AS: A high-energy YouTube movie recap creator. Use fast-paced, engaging hooks (e.g., "ဒီလူကို ကြည့်လိုက်ပါ..."). Make it sound like an exciting blockbuster trailer.
+                            """
+                        elif "Viral Shorts" in yt_script_style:
+                            tone_rules = """
+                            🔴 VIRAL SHORTS PROTOCOL:
+                            ACT AS: A fast-paced TikTok/Shorts creator. MUST fit within 60 seconds. Start with a massive hook in the first sentence. Keep sentences short, punchy, and highly engaging.
+                            """
+                        elif "Summary" in yt_script_style:
+                            tone_rules = """
+                            🔴 DETAILED SUMMARY PROTOCOL:
+                            ACT AS: A professional analyst. Provide a highly organized, clear, and objective summary of the key points. Use bullet points where necessary.
+                            """
+                        
+                        # 💡 Master Prompt သို့ ပေါင်းထည့်ခြင်း
                         prompt = f"""
                         CRITICAL INSTRUCTION: Output MUST be entirely in natural BURMESE language.
-                        ACT AS: A Professional Creative Storyteller and Scriptwriter.
                         TASK: Create a {yt_script_style} based on the video information provided below.
+                        
+                        {tone_rules}
                         
                         --- EXTRACTED YOUTUBE DATA ---
                         {smart_data}
@@ -236,7 +275,7 @@ elif selected_menu == "🔴 YouTube Master":
                         RULES:
                         1. If the extracted data contains a Transcript, use it to make the story highly accurate.
                         2. If the data ONLY has Title and Description, use your powerful imagination to create an epic, highly detailed story or script that matches the vibe of the title. Be incredibly descriptive!
-                        3. Use engaging, natural Burmese endings (တယ်, မယ်, တဲ့). AVOID robotic language.
+                        3. Use engaging, natural Burmese endings (တယ်, မယ်, တဲ့). AVOID robotic language (သည်, ၏).
                         """
                         
                         res = generate_content_safe(prompt)
@@ -400,6 +439,7 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
 
