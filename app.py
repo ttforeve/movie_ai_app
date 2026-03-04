@@ -14,6 +14,7 @@ import subprocess
 import json
 import urllib.request
 import xml.etree.ElementTree as ET
+import requests
 
 # ==========================================
 # 💾 Memory Vault အတွက် ဖိုင်တည်ဆောက်ခြင်း
@@ -74,17 +75,19 @@ def clean_script_text(script):
     return "\n\n".join(cleaned_parts)
 
 # 💡 YouTube Downloader (Cookie + Delay + iOS Bypass ပေါင်းစပ်ထားသော နောက်ဆုံး Version)
+import requests # အပေါ်ဆုံးမှာ ရှိနေရပါမယ်
+
 def download_audio_from_youtube(url):
-    # YouTube Video ID ကို ထုတ်ယူခြင်း
+    # Video ID ကို ထုတ်ယူခြင်း
     video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
     
-    # 💡 Piped API (Proxy) ကို သုံး၍ အသံဖိုင်လင့်ခ်ကို တိုက်ရိုက်ယူခြင်း
+    # 💡 Piped API (Proxy) - YouTube IP Ban ကို ကျော်သည့်စနစ်
     api_url = f"https://pipedapi.kavin.rocks/streams/{video_id}"
     
     try:
         res = requests.get(api_url).json()
-        # အသံဖိုင်များထဲမှ အကောင်းဆုံးကို ရွေးချယ်ခြင်း
-        audio_stream = [s for s in res['audioStreams'] if s['format'] == 'M4A' or s['format'] == 'WEB_M_OPUS'][0]
+        # Audio Stream ထဲကမှ အကောင်းဆုံး တစ်ခုကို ယူမည်
+        audio_stream = [s for s in res.get('audioStreams', []) if s.get('format') in ['M4A', 'WEB_M_OPUS']][0]
         audio_url = audio_stream['url']
         
         # ဖိုင်ကို တိုက်ရိုက် ဒေါင်းလုဒ်ဆွဲခြင်း
@@ -96,25 +99,21 @@ def download_audio_from_youtube(url):
         raise Exception(f"Proxy API Error: {str(e)}")
 
 def download_video_from_youtube(url):
-    if not os.path.exists("youtube_cookies.txt"):
-        raise Exception("Cookie file မတွေ့ပါ။")
-
-    ydl_opts = {
-        # 💡 အရေးကြီးဆုံးအချက် - bestvideo+bestaudio အစား 'best' တစ်လုံးတည်း သုံးမည်
-        # ဒါဆိုရင် YouTube က ရုပ်ရောအသံရော ပါပြီးသား single file ကို ပေးပါလိမ့်မည်
-        'format': 'best[ext=mp4]/best', 
-        'outtmpl': 'downloaded_video.%(ext)s',
-        'cookiefile': 'youtube_cookies.txt',
-        'nocheckcertificate': True,
-        'quiet': True,
-    }
+    video_id = url.split("v=")[-1].split("&")[0] if "v=" in url else url.split("/")[-1]
+    api_url = f"https://pipedapi.kavin.rocks/streams/{video_id}"
+    
     try:
-        if os.path.exists("downloaded_video.mp4"): os.remove("downloaded_video.mp4")
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl: 
-            ydl.download([url])
+        res = requests.get(api_url).json()
+        # Video Stream ထဲကမှ MP4 format ကို ရှာမည်
+        video_stream = [v for v in res.get('videoStreams', []) if v.get('format') == 'MP4' and v.get('videoOnly') == False][0]
+        video_url = video_stream['url']
+        
+        file_data = requests.get(video_url).content
+        with open("downloaded_video.mp4", "wb") as f:
+            f.write(file_data)
         return "downloaded_video.mp4"
     except Exception as e:
-        raise Exception(f"YouTube Error: {str(e)}")
+        raise Exception(f"Proxy API Error: {str(e)}")
 
 def generate_content_safe(prompt, media_file=None):
     models_to_try = ["models/gemini-2.0-flash", "models/gemini-1.5-flash", "models/gemini-flash-latest"]
@@ -228,6 +227,7 @@ elif selected_menu == "🎙️ Audio Studio":
 # --- (Other Menus follow similar pattern: 🦁 Smart Translator, 📚 Memory Vault, etc.) ---
 else:
     st.info(f"Welcome to {selected_menu}! Section is ready for action.")
+
 
 
 
