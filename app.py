@@ -524,6 +524,7 @@ elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
                     
                     # 💡 Professional Master Prompt
                     # 💡 Professional Master Prompt (VOICEOVER PRO EDITION)
+                    # 💡 Professional Master Prompt (VOICEOVER PRO EDITION)
                     master_prompt = f"""
                     CRITICAL INSTRUCTION: Your ENTIRE response MUST be in BURMESE language.
                     ACT AS: A Professional Creative Director and Master Scriptwriter.
@@ -536,9 +537,6 @@ elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
                     2. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud by a voice actor.
                     3. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့). AVOID robotic book language (သည်, ၏). Make it captivating!
                     4. DRAMATIC PAUSES: Use ellipses (...) frequently to guide the voice actor's breathing and build suspense.
-                    """
-                    
-                    STYLE: Use natural, flowing conversational Burmese (တယ်၊ မယ်၊ တဲ့, etc.). AVOID robotic book language (သည်, ၏) unless it is a formal educational or poetic script. Make it captivating!
                     """
                     
                     # SRT တောင်းဆိုပါက သီးသန့် Rule ထည့်ရန်
@@ -1058,6 +1056,7 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
 
 
 
