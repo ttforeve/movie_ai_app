@@ -536,33 +536,95 @@ elif selected_menu == "🦁 Smart Translator":
                 st.success("✅ ဘာသာပြန်ဆိုပြီးပါပြီ!")
                 st.markdown(res)
 
-# --- MENU 6: AUDIO STUDIO ---
+# --- TAB 6: AUDIO STUDIO ---
 elif selected_menu == "🎙️ Audio Studio":
     st.header("🎧 Audio Studio Hub")
-    tts_tab, tele_tab = st.tabs(["🗣️ AI TTS Generator", "🎤 Teleprompter"])
+    tts_tab, tele_tab = st.tabs(["🗣️ AI TTS Generator", "🎤 Teleprompter Recorder"])
 
     with tts_tab:
-        # 💡 NEW: Session State ကို လက်ခံပေးမည့် အပိုင်း
-        if "tts_text_area" not in st.session_state: 
-            st.session_state.tts_text_area = ""
-            
-        text_input = st.text_area("Text to read:", value=st.session_state.tts_text_area, height=150) 
-        voice = st.selectbox("Voice:", ["my-MM-NilarNeural", "my-MM-ThihaNeural", "en-US-JennyNeural"])
+        st.subheader("AI Voice Generation (Multi-Character)")
         
+        # 💡 Script Tab မှ ပို့လိုက်သော စာများကို လက်ခံရန်
+        text_input = st.text_area("Text to read:", height=150, key="tts_text_area", value=st.session_state.get("tts_text_area", "")) 
+        
+        voice_options = {
+            "🇲🇲 မြန်မာ (အမျိုးသမီး - Nilar)": "my-MM-NilarNeural",
+            "🇲🇲 မြန်မာ (အမျိုးသား - Thiha)": "my-MM-ThihaNeural",
+            "🇺🇸 English (Narrator Female - Jenny)": "en-US-JennyNeural",
+            "🇺🇸 English (Narrator Male - Guy)": "en-US-GuyNeural",
+            "👧 English (Little Girl - Ana)": "en-US-AnaNeural",
+            "👦 English (Young Boy - Roger)": "en-US-RogerNeural",
+            "👵 English (Elegant / Witchy - Sonia)": "en-GB-SoniaNeural",
+            "👴 English (Old Man / Wise - Thomas)": "en-GB-ThomasNeural",
+            "🦹‍♂️ English (Deep / Villain - Christopher)": "en-US-ChristopherNeural"
+        }
+        
+        c1, c2, c3 = st.columns(3)
+        with c1: 
+            selected_voice_label = st.selectbox("🎭 Character Voice", list(voice_options.keys()))
+            voice = voice_options[selected_voice_label]
+        with c2: 
+            rate = st.slider("🏃 Speed (အမြန်နှုန်း)", -50, 50, 0, format="%d%%", key="tts_rate")
+        with c3: 
+            pitch = st.slider("🎵 Pitch (အတက်အကျ)", -50, 50, 0, format="%dHz", key="tts_pitch")
+            
+        with st.expander("🪄 Pro Tips: ဘီလူးသံ၊ စုန်းမသံ ဖန်တီးနည်းများ"):
+            st.markdown("""
+            * **🧙‍♀️ စုန်းမသံ (Witch):** Voice `Sonia` ကို ရွေးပါ။ Pitch ကို **+15Hz** (အသံစူးစူး) ထားပြီး Speed ကို **-10%** (ဖြည်းဖြည်း) ထားပါ။
+            * **👹 ဘီလူး/လူဆိုးသံ (Villain):** Voice `Christopher` ကို ရွေးပါ။ Pitch ကို **-20Hz** (အသံသြသြ) ထားပြီး Speed ကို **-15%** (လေးလေးပင်ပင်) ထားပါ။
+            * **🧚‍♀️ နတ်သမီးသံ (Fairy):** Voice `Ana` ကို ရွေးပါ။ Pitch ကို **+20Hz** ထားပြီး Speed ကို **+10%** ထားပါ။
+            """)
+
         if st.button("🔊 Generate AI Voice", type="primary"):
             if text_input:
-                with st.spinner("Generating..."):
+                with st.spinner("🎧 Generating Voice... Please wait..."):
+                    # 💡 File Overwrite မဖြစ်အောင် ယာယီနာမည်ပေးခြင်း
+                    temp_audio_file = f"ai_voice_{int(time.time())}.mp3"
+
                     async def gen_audio():
-                        communicate = edge_tts.Communicate(text_input, voice)
-                        await communicate.save("ai_voice.mp3")
-                    asyncio.run(gen_audio())
-                    st.audio("ai_voice.mp3")
+                        pt = text_input.replace("။", "။ . ").replace("\n", " . \n")
+                        if not pt.endswith(". "): pt += " . "
+                        
+                        communicate = edge_tts.Communicate(pt, voice, rate=f"{rate:+d}%", pitch=f"{pitch:+d}Hz")
+                        await communicate.save(temp_audio_file)
+                    
+                    # 💡 Streamlit တွင် Asyncio Error မတက်စေရန် လုံခြုံသော Run နည်း
+                    try:
+                        loop = asyncio.get_event_loop()
+                    except RuntimeError:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                    
+                    loop.run_until_complete(gen_audio())
+
+                    st.success("✅ Voice Generated Successfully!")
+                    st.audio(temp_audio_file)
+                    
+                    with open(temp_audio_file, "rb") as f: 
+                        st.download_button("💾 Download MP3", f, "ai_voice.mp3")
+            else:
+                st.warning("⚠️ ကျေးဇူးပြု၍ အသံထွက်ဖတ်ရမည့် စာသား (Text) ထည့်ပါ။")
 
     with tele_tab:
-        st.write("🎤 Recorder")
+        st.subheader("Teleprompter & Voice Recorder")
+        # 💡 Script Tab ကပို့လိုက်တဲ့စာကို Teleprompter မှာ အလိုအလျောက် ပေါ်နေစေရန်
+        tele_text = st.text_area("Script for Teleprompter:", height=250, key="tele_text_input", value=st.session_state.get("tts_text_area", ""))
+        
+        col_t1, col_t2 = st.columns(2)
+        with col_t1: scroll_duration = st.slider("Duration (Slower)", 20, 500, 150) 
+        with col_t2: font_size = st.slider("Font Size", 20, 80, 40)
+
+        if tele_text:
+            html_code = f"""<div style="height: 300px; overflow: hidden; background: #000; color: #FFF; font-size: {font_size}px; text-align: center; padding: 20px; border-radius: 10px; line-height: 1.6;">
+                <div class="scroll" style="display: inline-block; animation: mUp {scroll_duration}s linear infinite;">{tele_text.replace(chr(10), "<br><br>")}</div></div>
+            <style>@keyframes mUp {{ 0% {{ transform: translateY(100%); }} 100% {{ transform: translateY(-100%); }} }} .scroll:hover {{ animation-play-state: paused; color: #FFD700; cursor: pointer; }}</style>"""
+            st.markdown(html_code, unsafe_allow_html=True)
+
+        st.write("---")
         wav_audio_data = st_audiorec() 
         if wav_audio_data is not None:
             st.audio(wav_audio_data, format='audio/wav')
+            st.download_button("💾 Download WAV", wav_audio_data, "teleprompter_rec.wav", "audio/wav")
 
 # --- MENU 7, 8, 9 ---
 elif selected_menu == "📚 မှတ်ဉာဏ်တိုက်":
@@ -682,6 +744,7 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
 
