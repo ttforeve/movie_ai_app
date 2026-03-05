@@ -84,36 +84,6 @@ def fetch_youtube_smart_data(url):
         raise Exception("ဗီဒီယိုကို ဖတ်၍မရပါ။ လင့်ခ်မှန်ကန်မှု စစ်ဆေးပါ။")
         
     return data_collected
-    
-    # 2. ခေါင်းစဉ်နှင့် အကြောင်းအရာ (Metadata) ကို ဆွဲယူမည် (မဒေါင်းလုဒ်ဆွဲပါ)
-    try:
-        ydl_opts = {'quiet': True, 'skip_download': True, 'extract_flat': True}
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            title = info.get('title', 'Unknown Title')
-            desc = info.get('description', '')
-            data_collected += f"🎬 ဗီဒီယို ခေါင်းစဉ် (Title): {title}\n📝 အကြောင်းအရာ (Description): {desc}\n\n"
-    except:
-        pass # Metadata မရရင် ကျော်မည်
-        
-    # 3. စာတန်းထိုး (Transcript) ကို ဆွဲယူမည် (အလွန်မြန်ဆန်သော နည်းလမ်း)
-    try:
-        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-        try:
-            transcript = transcript_list.find_transcript(['my', 'en']).fetch()
-        except:
-            for t in transcript_list:
-                transcript = t.fetch()
-                break
-        subs = " ".join([i['text'] for i in transcript])
-        data_collected += f"💬 ဗီဒီယိုတွင်း စကားပြောများ (Transcript):\n{subs}"
-    except:
-        data_collected += "⚠️ (ဤဗီဒီယိုတွင် စာတန်းထိုး မပါဝင်ပါ။ အထက်ပါ ခေါင်းစဉ်နှင့် အကြောင်းအရာကိုသာ အခြေခံ၍ စိတ်ကူးဉာဏ်ဖြင့် အကောင်းဆုံး ဇာတ်လမ်းဆင်ပေးပါ။)"
-        
-    if len(data_collected) < 10:
-        raise Exception("ဗီဒီယိုကို ဖတ်၍မရပါ။ လင့်ခ်မှန်ကန်မှု စစ်ဆေးပါ။")
-        
-    return data_collected
 
 def generate_content_safe(prompt, media_file=None):
     models_to_try = ["models/gemini-2.5-flash", "models/gemini-2.5-pro", "models/gemini-2.0-flash", "models/gemini-flash-latest"]
@@ -292,7 +262,7 @@ if selected_menu == "💡 Idea to Script":
         with mm_b2: gen_mm_script = st.button(direct_btn_text, type="primary", use_container_width=True, key="btn_mm_script")
 
         
-       # 💡 အခြေခံ ညွှန်ကြားချက်များ (VOICEOVER PRO EDITION)
+        # 💡 အခြေခံ ညွှန်ကြားချက်များ (VOICEOVER PRO EDITION)
         mm_rules = f"""
         CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language. 
         VERY IMPORTANT: You MUST write the output as a {type_keyword}. 
@@ -447,6 +417,7 @@ if selected_menu == "💡 Idea to Script":
             if st.button("📲 Send to AI TTS (Tab 6)", key="send_eng_tts"):
                 st.session_state.tts_text_area = st.session_state.eng_final_text 
                 st.success("✅ Text sent to Tab 6 Audio Studio!")
+
 # --- MENU 2 & 3: LOCAL VIDEO / AUDIO ---
 elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
     st.header(f"{selected_menu} Hub")
@@ -522,8 +493,6 @@ elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
                     
                     target_task = task_instructions.get(script_style, f"{media_verb}. Analyze the media and provide a detailed script.")
                     
-                    # 💡 Professional Master Prompt
-                    # 💡 Professional Master Prompt (VOICEOVER PRO EDITION)
                     # 💡 Professional Master Prompt (VOICEOVER PRO EDITION)
                     master_prompt = f"""
                     CRITICAL INSTRUCTION: Your ENTIRE response MUST be in BURMESE language.
@@ -657,9 +626,6 @@ elif selected_menu == "🔴 YouTube Master":
                             2. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud by a voice actor.
                             3. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့). AVOID robotic book language (သည်, ၏).
                             4. PAUSES & PACING: Use ellipses (...) frequently to indicate natural pauses for the voice actor.
-                            """
-                            
-                            RULES: Use engaging, natural flowing Burmese (တယ်, မယ်, တဲ့). Be highly descriptive!
                             """
                         
                         # 💡 AI ဖြင့် Generate လုပ်ခြင်း
@@ -1056,17 +1022,3 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
