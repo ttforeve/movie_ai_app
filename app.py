@@ -291,13 +291,17 @@ if selected_menu == "💡 Idea to Script":
         with mm_b1: gen_mm_outline = st.button("📑 အဆင့် ၁: Outline အရင်ထုတ်ရန်", use_container_width=True, key="btn_mm_out")
         with mm_b2: gen_mm_script = st.button(direct_btn_text, type="primary", use_container_width=True, key="btn_mm_script")
 
-        # 💡 အခြေခံ ညွှန်ကြားချက်များ
+        
+       # 💡 အခြေခံ ညွှန်ကြားချက်များ (VOICEOVER PRO EDITION)
         mm_rules = f"""
         CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language. 
         VERY IMPORTANT: You MUST write the output as a {type_keyword}. 
-        DO NOT use formal endings like "သည်", "မည်", "၏", "၍", "လျက်" unless it is a classic poem or requested. 
-        USE natural endings like "တယ်", "မယ်", "ရဲ့", "တာ", "ပြီး", "တော့" for spoken scripts and prose. 
-        AVOID generic vlog greetings. Act as a CINEMATIC STORYTELLER.
+        
+        🔴 UNIVERSAL VOICEOVER & PRONOUN RULES:
+        1. NO ARBITRARY NAMES: NEVER use random placeholder names (like မေ, မေသူ, အောင်အောင်, etc.). ALWAYS use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They), or descriptive terms like "ဒီကောင်လေး" (This boy), "ဒီအမျိုးသား" (This man).
+        2. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud by a voice actor or TTS.
+        3. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့, တာ). STRICTLY AVOID formal/robotic book language (သည်, ၏, ၍) unless explicitly requested.
+        4. DRAMATIC PAUSES: Use ellipses (...) frequently to guide the voice actor's breathing and build suspense.
         
         Topic: {mm_topic}. Tone: {mm_tone}. Audience: {mm_audience}. 
         """
@@ -519,12 +523,20 @@ elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
                     target_task = task_instructions.get(script_style, f"{media_verb}. Analyze the media and provide a detailed script.")
                     
                     # 💡 Professional Master Prompt
+                    # 💡 Professional Master Prompt (VOICEOVER PRO EDITION)
                     master_prompt = f"""
                     CRITICAL INSTRUCTION: Your ENTIRE response MUST be in BURMESE language.
                     ACT AS: A Professional Creative Director and Master Scriptwriter.
                     
                     TASK: {target_task}
                     USER SPECIAL REQUEST: {custom_instructions if custom_instructions else 'None'}
+                    
+                    🔴 UNIVERSAL VOICEOVER & PRONOUN RULES:
+                    1. NO ARBITRARY NAMES: NEVER use random placeholder Burmese names. ALWAYS use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They), or descriptive terms.
+                    2. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud by a voice actor.
+                    3. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့). AVOID robotic book language (သည်, ၏). Make it captivating!
+                    4. DRAMATIC PAUSES: Use ellipses (...) frequently to guide the voice actor's breathing and build suspense.
+                    """
                     
                     STYLE: Use natural, flowing conversational Burmese (တယ်၊ မယ်၊ တဲ့, etc.). AVOID robotic book language (သည်, ၏) unless it is a formal educational or poetic script. Make it captivating!
                     """
@@ -642,6 +654,13 @@ elif selected_menu == "🔴 YouTube Master":
                             {smart_data}
                             ------------------------------
                             
+                            🔴 UNIVERSAL VOICEOVER & PRONOUN RULES:
+                            1. NO ARBITRARY NAMES: NEVER use random placeholder Burmese names. ALWAYS use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They), or descriptive terms.
+                            2. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud by a voice actor.
+                            3. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့). AVOID robotic book language (သည်, ၏).
+                            4. PAUSES & PACING: Use ellipses (...) frequently to indicate natural pauses for the voice actor.
+                            """
+                            
                             RULES: Use engaging, natural flowing Burmese (တယ်, မယ်, တဲ့). Be highly descriptive!
                             """
                         
@@ -707,11 +726,17 @@ elif selected_menu == "🦁 Smart Translator":
         if api_key and source_text:
             with st.spinner("အကောင်းဆုံး မြန်မာဘာသာသို့ ပြောင်းလဲနေပါသည်... ⏳"):
                 
-                # 💡 Base Translation Prompt (အမှိုက်စာ မဖြစ်စေရန် ထိန်းချုပ်ခြင်း)
+                # 💡 Base Translation Prompt (VOICEOVER PRO EDITION)
                 base_prompt = f"""
                 CRITICAL INSTRUCTION: You are a Master Translator and Copywriter. 
                 Translate and transform the following English text into natural, highly engaging BURMESE language.
-                STRICT RULE: DO NOT use literal or direct word-for-word translations (Google Translate style). Use natural Burmese idioms, phrasing, and sentence structures (တယ်, မယ်, တဲ့).
+                STRICT RULE: DO NOT use literal or direct word-for-word translations (Google Translate style). 
+                
+                🔴 UNIVERSAL VOICEOVER & PRONOUN RULES (Apply unless formatting as strict SRT):
+                1. NO ARBITRARY NAMES: NEVER insert random Burmese names unless translating actual names from the source. Use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They).
+                2. VOICEOVER OPTIMIZED: Write for the EAR. The translation must flow naturally when spoken aloud. 
+                3. SPOKEN BURMESE: Use conversational endings (တယ်, မယ်, တဲ့). 
+                4. DRAMATIC PAUSES: Use ellipses (...) frequently to guide the voice actor's pacing.
                 """
                 
                 # 💡 Format Specific Rules
@@ -1033,6 +1058,7 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
 
 
 
