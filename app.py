@@ -131,41 +131,199 @@ with st.sidebar:
 st.title("🎬 Universal Studio AI")
 st.caption("Scripting • Research • Translation • Audio")
 
-# --- MENU 1: IDEA TO SCRIPT ---
+# --- TAB 1: IDEA TO SCRIPT HUB ---
 if selected_menu == "💡 Idea to Script":
     st.header("💡 Idea to Script Hub")
-    mm_tab, eng_tab = st.tabs(["🇲🇲 MM Social Media", "🇺🇸 English Studio"])
-    
-    with mm_tab:
-        if 'mm_final_script' not in st.session_state: st.session_state.mm_final_script = ""
-        if "current_mm_topic" not in st.session_state: st.session_state.current_mm_topic = ""
-        
-        col_topic, col_dice = st.columns([4, 1])
-        with col_topic:
-            mm_topic = st.text_area("Topic Input", value=st.session_state.current_mm_topic, height=100, placeholder="ဥပမာ - အချိန်ခရီးသွားတဲ့ ကော်ဖီဆိုင်လေး...")
-        with col_dice:
-            if st.button("🎲 Surprise Me!", use_container_width=True):
-                st.session_state.current_mm_topic = random.choice(["လူသားတွေရဲ့ အရိပ်တွေကို ဝယ်ယူတဲ့ လျှို့ဝှက်ဈေးဆိုင်", "မိုးစက်တွေနဲ့အတူ ပါသွားတဲ့ လွမ်းသူ့စာ"])
-                st.rerun()
-                
-        col1, col2, col3, col4 = st.columns(4)
-        with col1: mm_platform = st.selectbox("📱 Platform", ["Facebook Video", "TikTok / Reels", "YouTube Video"])
-        with col2: mm_tone = st.selectbox("🎭 Tone", ["💖 Soulful", "🎬 Recap", "🕵️‍♂️ True Crime", "😏 Sarcastic / Satirical"])
-        with col3: mm_audience = st.selectbox("🎯 Audience", ["General", "Youth", "Middle-aged"])
-        with col4: mm_pov = st.selectbox("🗣️ POV", ["Third-Person", "First-Person"])
+    mm_tab, eng_tab = st.tabs(["🇲🇲 MM Social Media", "🇺🇸 English Creative Studio"])
 
-        if st.button("🚀 ဇာတ်ညွှန်း တန်းရေးရန် (Generate Script)", type="primary", use_container_width=True):
-            if api_key and mm_topic:
-                with st.spinner("Writing Professional Script..."):
-                    prompt = f"Write a FULL, highly engaging Burmese script for {mm_platform}. Topic: {mm_topic}. Tone: {mm_tone}. Audience: {mm_audience}. POV: {mm_pov}. Use natural conversational Burmese (တယ်၊ မယ်၊ တဲ့). Act as a Cinematic Storyteller."
-                    st.session_state.mm_final_script = generate_content_safe(prompt)
+    # ==========================================
+    # 🇲🇲 MYANMAR TAB (Social Media Scriptwriter)
+    # ==========================================
+    with mm_tab:
+        st.subheader("📱 MM Social Media")
         
+        if 'mm_outline_text' not in st.session_state: st.session_state.mm_outline_text = ""
+        if 'mm_final_script' not in st.session_state: st.session_state.mm_final_script = ""
+
+        # 💡 "Surprise Me" အတွက် Session State မှတ်ဉာဏ်
+        if "current_mm_topic" not in st.session_state:
+            st.session_state.current_mm_topic = ""
+
+        st.subheader("📝 Topic")
+        col_topic, col_dice = st.columns([4, 1])
+
+        with col_topic:
+            # 💡 အသစ်ထပ်တိုး - ဇာတ်လမ်းအရှည်ကြီးတွေပါ ထည့်လို့ရအောင် text_area သို့ ပြောင်းထားသည်
+            mm_topic = st.text_area("Topic Input", value=st.session_state.current_mm_topic, height=100, placeholder="ဥပမာ - အချိန်ခရီးသွားတဲ့ ကော်ဖီဆိုင်လေး (သို့) ဇာတ်လမ်းအကြမ်း အစအဆုံး ကူးထည့်ပါ...", label_visibility="collapsed")
+
+        with col_dice:
+            # 🎲 Surprise Me ခလုတ်
+            if st.button("🎲 Surprise Me!", use_container_width=True):
+                awesome_ideas = [
+                    "လူသားတွေရဲ့ အရိပ်တွေကို ဝယ်ယူတဲ့ လျှို့ဝှက်ဈေးဆိုင်",
+                    "မိုးစက်တွေနဲ့အတူ ပါသွားတဲ့ လွမ်းသူ့စာ",
+                    "၁၀ နှစ်ကျော် ပျောက်ဆုံးနေတဲ့ တောတွင်းက ရွာလေးတစ်ရွာ",
+                    "ကမ္ဘာကြီး ရပ်တန့်သွားတဲ့ ၅ စက္ကန့်အတွင်း ဖြစ်ပျက်ခဲ့တာတွေ",
+                    "ဘဝမှာ အရှုံးပေးချင်စိတ်ပေါက်နေတဲ့သူအတွက် ခွန်အားပေးစာ",
+                    "နဂါးတွေ ရှင်သန်နေဆဲဖြစ်တဲ့ မြေအောက်ကမ္ဘာ",
+                    "ကြောင်လေးတွေ ကမ္ဘာကို အုပ်စိုးသွားတဲ့နေ့",
+                    "မှန်ထဲက ကမ္ဘာနဲ့ အပြင်ကမ္ဘာ လဲလှယ်ခံလိုက်ရတဲ့ ကောင်လေး",
+                    "ညသန်းခေါင် ရေဒီယိုကနေ လာတဲ့ ထူးဆန်းတဲ့ အကူအညီတောင်းသံ",
+                    "လမင်းကို ချစ်မိသွားတဲ့ ပန်းနုရောင် တိမ်တိုက်လေး",
+                    "အချိန်တွေ ရပ်တန့်သွားတဲ့ ဆောင်းရာသီ ညတစ်ည",
+                    "ကိုယ့်ကိုယ်ကိုယ် ပြန်လည်ရှာဖွေတွေ့ရှိခြင်း အကြောင်း",
+                    "လူသားတွေ အကုန်လုံး အိပ်မက်တစ်ခုတည်း မက်တဲ့ ရုပ်ရှင်"
+                ]
+                import random
+                st.session_state.current_mm_topic = random.choice(awesome_ideas)
+                st.rerun() 
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1: 
+            mm_platform = st.selectbox("📱 Platform", ["Facebook Video", "TikTok / Reels", "YouTube Video", "Voiceover Only"], key="mm_plat")
+        with col2: 
+            mm_tone = st.selectbox("🎭 Tone / အမျိုးအစား", [
+                "💖 Soulful / Inspirational",
+                "🎬 Recap / Summary",
+                "🕵️‍♂️ True Crime / Mystery",
+                "📜 Epic Myth / Lore",
+                "🎧 Late Night ASMR / Calm",
+                "👻 Gothic / Midnight Tale",
+                "🥀 Gothic Poetry",
+                "😏 Sarcastic / Satirical",
+                "😂 Funny / Humorous",
+                "👔 Professional / Educational",
+                "📱 Casual / Vlog"
+            ], key="mm_tone")
+        with col3: 
+            mm_audience = st.selectbox("🎯 Audience", ["General Audience", "Youth / Gen Z", "Middle-aged Adults"], key="mm_aud")
+        with col4: 
+            mm_pov = st.selectbox("🗣️ ရှုထောင့် (POV)", ["Third-Person", "First-Person", "Dialogue"], key="mm_pov")
+
+        st.write("---")
+        
+        # 💡 ခလုတ်နာမည်များနှင့် Keyword များ သတ်မှတ်ခြင်း
+        if "Poetry" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ကဗျာပုံစံ ရေးပါ"
+            direct_btn_text = "🚀 ကဗျာ တန်းရေးရန် (Direct Poem)"
+            type_keyword = "GOTHIC POEM (စကားပြေကဗျာ)"
+            success_msg = "✅ ကဗျာ ရေးသားပြီးပါပြီ!"
+        elif "Soulful" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ရသစာတို ရေးပါ"
+            direct_btn_text = "🚀 ရသစာတို တန်းရေးရန် (Direct Story)"
+            type_keyword = "INSPIRATIONAL SHORT STORY (နှလုံးသားခွန်အားပေး ရသစာတို)"
+            success_msg = "✅ ရသစာတို ရေးသားပြီးပါပြီ!"
+        elif "Recap" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း အနှစ်ချုပ် ဇာတ်ညွှန်းရေးပါ"
+            direct_btn_text = "🚀 အနှစ်ချုပ် တန်းရေးရန် (Direct Recap)"
+            type_keyword = "MOVIE/BOOK RECAP SCRIPT (ရုပ်ရှင်/စာအုပ် အနှစ်ချုပ် ဇာတ်ညွှန်း)"
+            success_msg = "✅ အနှစ်ချုပ် ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+        elif "True Crime" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း မှုခင်းဇာတ်ကြောင်း ရေးပါ"
+            direct_btn_text = "🚀 မှုခင်းဇာတ်ကြောင်း တန်းရေးရန် (Direct True Crime)"
+            type_keyword = "TRUE CRIME / MYSTERY SCRIPT (မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် ဇာတ်ညွှန်း)"
+            success_msg = "✅ မှုခင်း ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+        elif "Epic Myth" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ဒဏ္ဍာရီဇာတ်ကြောင်း ရေးပါ"
+            direct_btn_text = "🚀 ဒဏ္ဍာရီ တန်းရေးရန် (Direct Lore)"
+            type_keyword = "EPIC MYTH / HISTORICAL LORE (သမိုင်း/ဒဏ္ဍာရီ ဇာတ်ကြောင်း)"
+            success_msg = "✅ ဒဏ္ဍာရီ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+        elif "ASMR" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း ASMR စာသား ရေးပါ"
+            direct_btn_text = "🚀 ASMR စာသား တန်းရေးရန် (Direct ASMR)"
+            type_keyword = "LATE NIGHT ASMR NARRATION (ညဘက်နားထောင်ရန် အေးချမ်းသောစာသား)"
+            success_msg = "✅ ASMR စာသား ရေးသားပြီးပါပြီ!"
+        elif "Tale" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း စကားပြေ/ဇာတ်လမ်းပုံစံ ရေးပါ"
+            direct_btn_text = "🚀 စကားပြေ တန်းရေးရန် (Direct Tale)"
+            type_keyword = "PROSE TALE (စကားပြေ ဇာတ်လမ်း)"
+            success_msg = "✅ ဇာတ်လမ်း ရေးသားပြီးပါပြီ!"
+        elif "Sarcastic" in mm_tone:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း သရော်စာ ရေးပါ"
+            direct_btn_text = "🚀 သရော်စာ တန်းရေးရန် (Direct Satire)"
+            type_keyword = "SARCASTIC / SATIRICAL MONOLOGUE (ခနဲ့တဲ့တဲ့ သရော်စာ)"
+            success_msg = "✅ အမိုက်စား သရော်စာ ရေးသားပြီးပါပြီ!"
+        else:
+            out_btn_text = "✨ ဒီ Outline အတိုင်း စကားပြောဇာတ်ညွှန်း ရေးပါ"
+            direct_btn_text = "🚀 ဇာတ်ညွှန်း တန်းရေးရန် (Direct Script)"
+            type_keyword = "SPOKEN SCRIPT (စကားပြော ဇာတ်ညွှန်း)"
+            success_msg = "✅ ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!"
+
+        mm_b1, mm_b2 = st.columns(2)
+        with mm_b1: gen_mm_outline = st.button("📑 အဆင့် ၁: Outline အရင်ထုတ်ရန်", use_container_width=True, key="btn_mm_out")
+        with mm_b2: gen_mm_script = st.button(direct_btn_text, type="primary", use_container_width=True, key="btn_mm_script")
+
+        # 💡 အခြေခံ ညွှန်ကြားချက်များ
+        mm_rules = f"""
+        CRITICAL INSTRUCTION: Your ENTIRE response MUST be in pure Burmese Language. 
+        VERY IMPORTANT: You MUST write the output as a {type_keyword}. 
+        DO NOT use formal endings like "သည်", "မည်", "၏", "၍", "လျက်" unless it is a classic poem or requested. 
+        USE natural endings like "တယ်", "မယ်", "ရဲ့", "တာ", "ပြီး", "တော့" for spoken scripts and prose. 
+        AVOID generic vlog greetings. Act as a CINEMATIC STORYTELLER.
+        
+        Topic: {mm_topic}. Tone: {mm_tone}. Audience: {mm_audience}. 
+        """
+        
+        # 💡 နောက်ကွယ်မှ အတိအကျ ပုံသွင်းမည့် လျှို့ဝှက် Prompts များ
+        if "Soulful" in mm_tone:
+            mm_rules += "1. Write like 'Chicken Soup for the Soul'. Focus on deep human emotions.\n2. Use beautiful, poetic Burmese words.\n3. End with a profound life lesson.\n"
+        elif "Recap" in mm_tone:
+            mm_rules += "1. Fast-paced, engaging movie/book summary.\n2. Massive HOOK at the start.\n3. Highlight suspenseful parts like a campfire story.\n"
+        elif "True Crime" in mm_tone:
+            mm_rules += "1. Suspenseful, dark, analytical tone.\n2. Build tension, end with cliffhangers.\n3. Respectful but chilling voice.\n"
+        elif "Epic Myth" in mm_tone:
+            mm_rules += "1. Grand, cinematic, majestic tone.\n2. Characters sound like legends.\n3. Elegant/classic Burmese vocabulary.\n"
+        elif "ASMR" in mm_tone:
+            mm_rules += "1. Calm, soothing, intimate.\n2. Gentle pacing, frequent ellipses (...).\n3. Focus on relaxation/mindfulness.\n"
+        elif "Tale" in mm_tone:
+            mm_rules += "1. ANTI-CLICHÉ GOTHIC. Surreal, psychological.\n2. Deep aesthetic melancholy, plot twists.\n"
+        elif "Poetry" in mm_tone:
+            mm_rules += "1. Prose-poem/Voiceover format.\n2. NO traditional stanzas.\n3. Use dramatic pauses (...).\n4. Length: 4-7 sentences.\n"
+        elif "Sarcastic" in mm_tone:
+            mm_rules += "1. Highly sarcastic, dry, slightly mocking tone.\n2. Pretend to praise while criticizing.\n3. Sharp wit, irony. End with witty punchline.\n"
+
+        if "Third-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: THIRD-PERSON.\n"
+        elif "First-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: FIRST-PERSON.\n"
+
+        if gen_mm_outline and api_key and mm_topic:
+            with st.spinner("Brainstorming Outline..."):
+                prompt = f"Create a 5-point OUTLINE for a {type_keyword} about '{mm_topic}'. MUST be 100% in Burmese. {mm_rules}"
+                st.session_state.mm_outline_text = generate_content_safe(prompt)
+                st.session_state.mm_final_script = "" 
+
+        if st.session_state.mm_outline_text:
+            with st.expander("📑 Your Script Outline", expanded=True):
+                st.write(st.session_state.mm_outline_text)
+                if st.button(out_btn_text, use_container_width=True, key="btn_mm_full"):
+                    with st.spinner(f"Writing Full {type_keyword}..."):
+                        prompt = mm_rules + f"\nBased on this OUTLINE, write the full {type_keyword}:\n{st.session_state.mm_outline_text}"
+                        st.session_state.mm_final_script = generate_content_safe(prompt)
+                        st.session_state.mm_outline_text = "" 
+                        st.rerun() 
+
+        if gen_mm_script and api_key and mm_topic:
+            with st.spinner(f"Writing Professional {type_keyword}..."):
+                prompt = f"Write a FULL, highly engaging {type_keyword}. {mm_rules}"
+                st.session_state.mm_final_script = generate_content_safe(prompt)
+
         if st.session_state.mm_final_script:
-            st.success("✅ အမိုက်စား ဇာတ်ညွှန်း ရေးသားပြီးပါပြီ!")
+            st.success(success_msg)
             st.code(st.session_state.mm_final_script, language="markdown")
-            if st.button("💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်"):
-                save_to_vault(mm_topic, st.session_state.mm_final_script, mm_tone)
-                st.success("Saved to Vault!")
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                # 💡 ERROR ပြင်ဆင်ပြီး (clean_script_text ကို ဖြုတ်လိုက်ပါသည်)
+                if st.button("📲 AI TTS သို့ ပို့ရန်", key="send_mm_tts", use_container_width=True):
+                    st.session_state.tts_text_area = st.session_state.mm_final_script
+                    st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ!")
+            with c2:
+                if st.button("💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်", key="save_to_vault_btn", use_container_width=True):
+                    save_to_vault(mm_topic, st.session_state.mm_final_script, type_keyword)
+                    st.success("✅ မှတ်ဉာဏ်တိုက် (Tab 7) တွင် သိမ်းဆည်းပြီးပါပြီ!")
+
+    # ==========================================
+    # 🇺🇸 ENGLISH TAB (Creative Literature Studio)
+    # ==========================================
     with eng_tab:
         st.subheader("✍️ English Creative Studio")
         st.caption("Perfect for Teenagers, Children, and Heartwarming Adult Stories")
@@ -178,20 +336,31 @@ if selected_menu == "💡 Idea to Script":
         col_e1, col_e2, col_e3 = st.columns(3)
         with col_e1:
             eng_format = st.selectbox("📜 Format", [
-                "Short Story", "Flash Fiction", "Poem", "Blog Article", 
-                "Children's Story", "Children's Song",
-                "Chicken Soup for the Soul (Inspirational)", "Short Joke / Anecdote"
+                "Short Story", 
+                "Flash Fiction", 
+                "Poem", 
+                "Blog Article", 
+                "Children's Story", 
+                "Children's Song",
+                "Chicken Soup for the Soul (Inspirational)",
+                "Short Joke / Anecdote"
             ], key="eng_format")
             
         with col_e2:
             eng_genre = st.selectbox("🎭 Genre", [
-                "Coming-of-age", "Comedy / Humor", "Fantasy / Magic", 
-                "Sci-Fi", "Mystery / Thriller", "Horror", "Romance"
+                "Coming-of-age", 
+                "Comedy / Humor", 
+                "Fantasy / Magic", 
+                "Sci-Fi", 
+                "Mystery / Thriller", 
+                "Horror", 
+                "Romance"
             ], key="eng_genre")
-            
         with col_e3:
             eng_length = st.radio("📏 Length", [
-                "Short (~150 words)", "Medium (~300 words)", "Long (~500 words)"
+                "Short (~150 words)", 
+                "Medium (~300 words)", 
+                "Long (~500 words)"
             ], key="eng_length")
 
         st.write("---")
@@ -513,6 +682,7 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
 
