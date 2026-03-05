@@ -408,34 +408,117 @@ if selected_menu == "💡 Idea to Script":
 # --- MENU 2 & 3: LOCAL VIDEO / AUDIO ---
 elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
     st.header(f"{selected_menu} Hub")
-    st.caption("Local ဖိုင်များ တင်၍ ဇာတ်ညွှန်း ပြောင်းလဲပါ")
+    st.caption("Local ဖိုင်များ တင်၍ ဇာတ်ညွှန်း၊ ဆောင်းပါး နှင့် အိုင်ဒီယာများ ပြောင်းလဲပါ")
     
-    file_type = ['mp4', 'mov', 'avi'] if "Video" in selected_menu else ['mp3', 'wav', 'm4a']
+    # Video လား Audio လား ခွဲခြားခြင်း
+    is_video = "Video" in selected_menu
+    file_type = ['mp4', 'mov', 'avi'] if is_video else ['mp3', 'wav', 'm4a']
+    
     media_file = st.file_uploader(f"Upload File", type=file_type)
     
-    script_style = st.selectbox("ဖန်တီးလိုသော အမျိုးအစား:", ["🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် (Cinematic Recap)", "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful)", "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် (Mystery)", "📱 Viral Shorts Script", "📄 စာသားအပြည့်အစုံ (Transcript)"])
+    # 💡 ပြီးပြည့်စုံသော All-in-One အမျိုးအစား (၁၂) မျိုး
+    style_options = [
+        "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် (Cinematic Recap)", 
+        "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)", 
+        "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် (Mystery/True Crime)", 
+        "👻 အမှောင်ရသ (Gothic/Midnight Tale)", 
+        "😂 ခနဲ့တဲ့တဲ့ သရော်စာ (Sarcastic Roast)", 
+        "🎓 ပညာရေး / ဗဟုသုတ ရှင်းလင်းချက် (Educational Explainer)", 
+        "🎙️ ဇာတ်ကြောင်းပြော (Professional Narration)", 
+        "🗣️ ပေါ့တ်ကတ်စ် အမေးအဖြေ (Podcast Q&A)", 
+        "📱 Viral Shorts Script (စက္ကန့် ၆၀ စာ)", 
+        "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)", 
+        "🧠 အိုင်ဒီယာ တိုးချဲ့ခြင်း (Idea Brainstorm & Outline)", 
+        "📄 စာသားအပြည့်အစုံ (Transcript / SRT)"
+    ]
     
-    if media_file and st.button("✨ Start AI Analysis", type="primary"):
+    script_style = st.selectbox("ဖန်တီးလိုသော အမျိုးအစားကို ရွေးပါ:", style_options)
+    
+    # 💡 အထူးတောင်းဆိုချက် (Custom Instructions) ထည့်ရန်နေရာ
+    custom_instructions = st.text_input("💡 အထူးတောင်းဆိုချက် (Optional):", placeholder="ဥပမာ - ဟာသလေးတွေ ပိုထည့်ပေး၊ အဓိက ဇာတ်ကောင်အကြောင်း ပိုဖိရေးပေး...")
+    
+    # 💡 Generate လုပ်ပြီးပါက ရလဒ်များကို မှတ်ထားရန်
+    if 'media_final_script' not in st.session_state: st.session_state.media_final_script = ""
+    if 'current_media_name' not in st.session_state: st.session_state.current_media_name = ""
+    
+    if media_file and st.button("🚀 Start Professional AI Analysis", type="primary", use_container_width=True):
         if api_key:
-            with st.spinner("AI မှ ဖိုင်ကို လေ့လာနေပါသည်..."):
-                ext = media_file.name.split('.')[-1]
-                mime = "video/mp4" if "Video" in selected_menu else "audio/mp3"
-                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
-                    tmp.write(media_file.getvalue())
-                    tpath = tmp.name
+            with st.spinner("AI မှ ဖိုင်ကို အသေးစိတ် လေ့လာနေပါသည်... (ဖိုင်အရွယ်အစားပေါ်မူတည်၍ အချိန်အနည်းငယ် ကြာနိုင်ပါသည်) ⏳"):
+                try:
+                    # ဖိုင်ကို Temp ထဲ ယာယီသိမ်းခြင်း
+                    ext = media_file.name.split('.')[-1]
+                    mime = "video/mp4" if is_video else "audio/mp3"
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as tmp:
+                        tmp.write(media_file.getvalue())
+                        tpath = tmp.name
+                        
+                    # Gemini သို့ Upload တင်ခြင်း
+                    myfile = genai.upload_file(tpath, mime_type=mime)
+                    while myfile.state.name == "PROCESSING": 
+                        time.sleep(2)
+                        myfile = genai.get_file(myfile.name)
+                        
+                    # 💡 Video နဲ့ Audio အပေါ်မူတည်ပြီး Prompt ကို အလိုအလျောက် ပြောင်းလဲပေးမည့် စနစ်
+                    media_verb = "Watch the visuals and listen to the audio carefully" if is_video else "Listen to the audio carefully"
+                    visual_cue = " Include visual markers [Visual: ...] for key scene changes." if is_video else ""
                     
-                myfile = genai.upload_file(tpath, mime_type=mime)
-                while myfile.state.name == "PROCESSING": 
-                    time.sleep(2)
-                    myfile = genai.get_file(myfile.name)
+                    # 💡 Master Task Dictionary
+                    task_instructions = {
+                        "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် (Cinematic Recap)": f"{media_verb}. Rewrite this as a high-energy movie recap script. Use a storytelling tone like popular YouTube recap channels.",
+                        "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)": f"{media_verb}. Transform the content into a deeply emotional, heartwarming, and poetic short story (Chicken Soup style). Focus on human feelings and life lessons.",
+                        "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် (Mystery/True Crime)": f"{media_verb}. Create a suspenseful mystery/true crime style narration. Highlight the most unsettling or intriguing parts.",
+                        "👻 အမှောင်ရသ (Gothic/Midnight Tale)": f"{media_verb}. Re-imagine the content into a dark, mysterious, and Gothic-themed narrative. Add chilling and aesthetic elements.",
+                        "😂 ခနဲ့တဲ့တဲ့ သရော်စာ (Sarcastic Roast)": f"{media_verb}. Create a highly sarcastic, dry, and slightly mocking commentary/roast about the content. Make it funny and witty.",
+                        "🎓 ပညာရေး / ဗဟုသုတ ရှင်းလင်းချက် (Educational Explainer)": f"{media_verb}. Create a clear, highly informative educational explainer script. Break down complex topics so anyone can understand.",
+                        "🎙️ ဇာတ်ကြောင်းပြော (Professional Narration)": f"{media_verb}. Convert the input into a well-structured, professional narration script suitable for a documentary-style video.",
+                        "🗣️ ပေါ့တ်ကတ်စ် အမေးအဖြေ (Podcast Q&A)": f"{media_verb}. Extract the key topics and convert them into a structured Q&A interview format. Make it sound like an engaging podcast conversation.",
+                        "📱 Viral Shorts Script (စက္ကန့် ၆၀ စာ)": f"{media_verb}. Create a fast-paced viral script for TikTok/Reels. Start with a powerful HOOK. Ensure it fits a 60-second time limit. Include a catchy caption and 3 trending hashtags at the end.",
+                        "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)": f"{media_verb}. Provide a very detailed, organized summary with bullet points highlighting the key takeaways and main concepts.",
+                        "🧠 အိုင်ဒီယာ တိုးချဲ့ခြင်း (Idea Brainstorm & Outline)": f"{media_verb}. Expand this idea into a professional 5-point content outline. Suggest angles and ways to make it engaging for an audience.",
+                        "📄 စာသားအပြည့်အစုံ (Transcript / SRT)": f"{media_verb}. Provide a clean, accurate, word-for-word transcript.{visual_cue}"
+                    }
                     
-                prompt = f"Analyze this media. Write a {script_style} in engaging BURMESE language."
-                if "Transcript" in script_style: prompt = SRT_PROMPT
-                
-                res = generate_content_safe(prompt, myfile)
-                st.success("✅ အောင်မြင်ပါပြီ!")
-                st.markdown(res)
-                os.remove(tpath)
+                    target_task = task_instructions.get(script_style, f"{media_verb}. Analyze the media and provide a detailed script.")
+                    
+                    # 💡 Professional Master Prompt
+                    master_prompt = f"""
+                    CRITICAL INSTRUCTION: Your ENTIRE response MUST be in BURMESE language.
+                    ACT AS: A Professional Creative Director and Master Scriptwriter.
+                    
+                    TASK: {target_task}
+                    USER SPECIAL REQUEST: {custom_instructions if custom_instructions else 'None'}
+                    
+                    STYLE: Use natural, flowing conversational Burmese (တယ်၊ မယ်၊ တဲ့, etc.). AVOID robotic book language (သည်, ၏) unless it is a formal educational or poetic script. Make it captivating!
+                    """
+                    
+                    # SRT တောင်းဆိုပါက သီးသန့် Rule ထည့်ရန်
+                    if "Transcript" in script_style:
+                        master_prompt += "\nRULE: If the user explicitly asks for SRT format in the Special Request, use exact SRT format (1 \n 00:00:00,000 --> 00:00:02,000 \n [Text]). Otherwise, just provide the clean text format. If NO dialogue is present, reply ONLY 'NO_SPEECH_DETECTED'."
+                    
+                    # AI ဖြင့် Generate လုပ်ခြင်း
+                    st.session_state.media_final_script = generate_content_safe(master_prompt, myfile)
+                    st.session_state.current_media_name = media_file.name
+                    
+                    # Temp ဖိုင်ကို ရှင်းလင်းခြင်း
+                    if os.path.exists(tpath): os.remove(tpath)
+                    
+                except Exception as e:
+                    st.error(f"⚠️ Error: ဖိုင်ကို ဖတ်၍ မရပါ။ ({e})")
+                    
+    # 💡 ရလဒ်ပြသခြင်းနှင့် Action ခလုတ်များ (State မှတ်ထားသဖြင့် ပျောက်မသွားပါ)
+    if st.session_state.media_final_script:
+        st.success(f"✅ {script_style} ဖန်တီးပြီးပါပြီ!")
+        st.code(st.session_state.media_final_script, language="markdown")
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 6)", key="send_media_tts", use_container_width=True):
+                st.session_state.tts_text_area = st.session_state.media_final_script
+                st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ! အသံထွက်ဖတ်ကြည့်နိုင်ပါပြီ။")
+        with c2:
+            if st.button("💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်", key="save_media_vault", use_container_width=True):
+                save_to_vault(f"Media ({st.session_state.current_media_name})", st.session_state.media_final_script, script_style)
+                st.success("✅ မှတ်ဉာဏ်တိုက် (Tab 7) တွင် အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!")
 
 # --- MENU 4: YOUTUBE MASTER (THE SUPER FAST BYPASS VERSION) ---
 elif selected_menu == "🔴 YouTube Master":
@@ -744,6 +827,7 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
 
