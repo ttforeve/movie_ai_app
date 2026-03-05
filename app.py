@@ -38,7 +38,7 @@ st.set_page_config(page_title="Universal Studio AI", page_icon="🎬", layout="w
 # 🛠️ 2. CORE HELPER FUNCTIONS
 # ==========================================
 
-# 💡 NEW: Smart YouTube Data Extractor (No Media Download = No 403 Error!)
+# 💡 NEW: Smart YouTube Data Extractor (With Timestamps for SRT)
 def fetch_youtube_smart_data(url):
     # 1. Video ID ထုတ်ယူခြင်း
     if "v=" in url: video_id = url.split("v=")[-1].split("&")[0]
@@ -46,6 +46,44 @@ def fetch_youtube_smart_data(url):
     else: video_id = url.split("/")[-1]
         
     data_collected = ""
+    
+    # 2. ခေါင်းစဉ်နှင့် အကြောင်းအရာ (Metadata)
+    try:
+        ydl_opts = {'quiet': True, 'skip_download': True, 'extract_flat': True}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            title = info.get('title', 'Unknown Title')
+            desc = info.get('description', '')
+            data_collected += f"🎬 ဗီဒီယို ခေါင်းစဉ်: {title}\n📝 အကြောင်းအရာ: {desc}\n\n"
+    except:
+        pass 
+        
+    # 3. စာတန်းထိုး (Transcript) ကို အချိန် (Timestamps) များနှင့်တကွ ဆွဲယူမည်
+    try:
+        transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        try:
+            transcript = transcript_list.find_transcript(['my', 'en']).fetch()
+        except:
+            for t in transcript_list:
+                transcript = t.fetch()
+                break
+                
+        subs = ""
+        # 💡 အချိန် (Timestamps) များကို ဖမ်းယူခြင်း (ဥပမာ - [01:15] Hello)
+        for i in transcript:
+            start_time = i['start']
+            mins = int(start_time // 60)
+            secs = int(start_time % 60)
+            subs += f"[{mins:02d}:{secs:02d}] {i['text']}\n"
+            
+        data_collected += f"💬 ဗီဒီယိုတွင်း စကားပြောများ (Transcript with Timestamps):\n{subs}"
+    except:
+        data_collected += "⚠️ (ဤဗီဒီယိုတွင် စာတန်းထိုး မပါဝင်ပါ။)"
+        
+    if len(data_collected) < 10:
+        raise Exception("ဗီဒီယိုကို ဖတ်၍မရပါ။ လင့်ခ်မှန်ကန်မှု စစ်ဆေးပါ။")
+        
+    return data_collected
     
     # 2. ခေါင်းစဉ်နှင့် အကြောင်းအရာ (Metadata) ကို ဆွဲယူမည် (မဒေါင်းလုဒ်ဆွဲပါ)
     try:
@@ -530,7 +568,6 @@ elif selected_menu == "🔴 YouTube Master":
     if yt_url:
         st.write("---")
         
-        # 💡 ပြီးပြည့်စုံသော All-in-One အမျိုးအစား (၁၂) မျိုး
         style_options = [
             "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် (Cinematic Recap)", 
             "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)", 
@@ -547,61 +584,66 @@ elif selected_menu == "🔴 YouTube Master":
         ]
         
         yt_script_style = st.selectbox("ဖန်တီးလိုသော အမျိုးအစားကို ရွေးချယ်ပါ:", style_options)
-        
-        # 💡 အထူးတောင်းဆိုချက် ထည့်ရန်နေရာ
         yt_custom_instructions = st.text_input("💡 အထူးတောင်းဆိုချက် (Optional):", placeholder="ဥပမာ - ဟာသလေးတွေ ပိုထည့်ပေး...")
 
-        # 💡 Generate လုပ်ပြီးပါက ရလဒ်များကို မှတ်ထားရန်
         if 'yt_final_script' not in st.session_state: st.session_state.yt_final_script = ""
         
         if st.button("🚀 Start Fast AI Analysis", use_container_width=True, type="primary"):
             if api_key:
                 with st.spinner("YouTube မှ အချက်အလက်များကို ဆွဲယူနေပါသည်... ⚡ (စက္ကန့်ပိုင်းသာ ကြာပါမည်)"):
                     try:
-                        # 💡 ဒေါင်းလုဒ်မဆွဲဘဲ စာသားသက်သက်ကို ချက်ချင်း ယူမည့်စနစ်
                         smart_data = fetch_youtube_smart_data(yt_url)
                         
-                        yt_verb = "Read the extracted YouTube data carefully"
-                        
-                        # 💡 Master Task Dictionary (For Text/Data Context)
-                        task_instructions = {
-                            "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် (Cinematic Recap)": f"{yt_verb}. Rewrite this as a high-energy movie recap script. Use a storytelling tone like popular YouTube recap channels.",
-                            "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)": f"{yt_verb}. Transform the content into a deeply emotional, heartwarming, and poetic short story (Chicken Soup style). Focus on human feelings and life lessons.",
-                            "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် (Mystery/True Crime)": f"{yt_verb}. Create a suspenseful mystery/true crime style narration. Highlight the most unsettling or intriguing parts.",
-                            "👻 အမှောင်ရသ (Gothic/Midnight Tale)": f"{yt_verb}. Re-imagine the content into a dark, mysterious, and Gothic-themed narrative. Add chilling and aesthetic elements.",
-                            "😂 ခနဲ့တဲ့တဲ့ သရော်စာ (Sarcastic Roast)": f"{yt_verb}. Create a highly sarcastic, dry, and slightly mocking commentary/roast about the content. Make it funny and witty.",
-                            "🎓 ပညာရေး / ဗဟုသုတ ရှင်းလင်းချက် (Educational Explainer)": f"{yt_verb}. Create a clear, highly informative educational explainer script. Break down complex topics so anyone can understand.",
-                            "🎙️ ဇာတ်ကြောင်းပြော (Professional Narration)": f"{yt_verb}. Convert the input into a well-structured, professional narration script suitable for a documentary-style video.",
-                            "🗣️ ပေါ့တ်ကတ်စ် အမေးအဖြေ (Podcast Q&A)": f"{yt_verb}. Extract the key topics and convert them into a structured Q&A interview format. Make it sound like an engaging podcast conversation.",
-                            "📱 Viral Shorts Script (စက္ကန့် ၆၀ စာ)": f"{yt_verb}. Create a fast-paced viral script for TikTok/Reels. Start with a powerful HOOK. Ensure it fits a 60-second time limit. Include a catchy caption and 3 trending hashtags at the end.",
-                            "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)": f"{yt_verb}. Provide a very detailed, organized summary with bullet points highlighting the key takeaways and main concepts.",
-                            "🧠 အိုင်ဒီယာ တိုးချဲ့ခြင်း (Idea Brainstorm & Outline)": f"{yt_verb}. Expand this idea into a professional 5-point content outline. Suggest angles and ways to make it engaging for an audience.",
-                            "📄 စာသားအပြည့်အစုံ (Transcript / SRT)": f"{yt_verb}. Provide a clean, accurate, and organized transcript or detailed article based on the data."
-                        }
-                        
-                        target_task = task_instructions.get(yt_script_style, f"{yt_verb}. Provide a detailed script.")
-                        
-                        # 💡 Master Prompt သို့ ပေါင်းထည့်ခြင်း
-                        prompt = f"""
-                        CRITICAL INSTRUCTION: Output MUST be entirely in natural BURMESE language.
-                        ACT AS: A Professional Creative Director and Master Scriptwriter.
-                        
-                        TASK: {target_task}
-                        USER SPECIAL REQUEST: {yt_custom_instructions if yt_custom_instructions else 'None'}
-                        
-                        --- EXTRACTED YOUTUBE DATA ---
-                        {smart_data}
-                        ------------------------------
-                        
-                        RULES:
-                        1. If the extracted data contains a Transcript, use it to make the story highly accurate.
-                        2. If the data ONLY has Title and Description, use your powerful imagination to create an epic, highly detailed story or script that matches the vibe of the title. Be incredibly descriptive!
-                        3. STYLE: Use engaging, natural flowing Burmese (တယ်, မယ်, တဲ့). AVOID robotic language (သည်, ၏) unless it is a formal educational or poetic script. Make it captivating!
-                        """
-                        
-                        # SRT တောင်းဆိုပါက သီးသန့် Rule ထည့်ရန်
+                        # 💡 1. SRT / Transcript အတွက် သီးသန့် Prompt (အခြားဟာတွေနဲ့ မရောအောင်)
                         if "Transcript" in yt_script_style:
-                            prompt += "\nRULE: If the user requests an SRT format in the Special Request, format it as strict SRT. Otherwise, write it as a beautifully formatted reading text."
+                            prompt = f"""
+                            CRITICAL INSTRUCTION: You are a Professional Subtitle Translator.
+                            TASK: Translate the original spoken transcript into natural BURMESE and format it STRICTLY as an SRT file.
+                            
+                            RULES:
+                            1. You MUST output standard SRT format (e.g., 1 \n 00:00:00,000 --> 00:00:05,000 \n [Burmese Text]).
+                            2. Use the timestamps provided in the data (e.g., [01:15]) to accurately estimate the SRT timecodes.
+                            3. TRANSLATE the English text into natural Burmese line-by-line.
+                            4. DO NOT write a summary, intro, or outro. ONLY output the SRT formatted text starting with the number 1.
+                            
+                            USER SPECIAL REQUEST: {yt_custom_instructions if yt_custom_instructions else 'None'}
+                            
+                            --- EXTRACTED YOUTUBE DATA ---
+                            {smart_data}
+                            ------------------------------
+                            """
+                        else:
+                            # 💡 2. အခြား Content အမျိုးအစားများအတွက် ပုံမှန် Prompt
+                            yt_verb = "Read the extracted YouTube data carefully"
+                            task_instructions = {
+                                "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် (Cinematic Recap)": f"{yt_verb}. Rewrite this as a high-energy movie recap script.",
+                                "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)": f"{yt_verb}. Transform the content into a deeply emotional short story.",
+                                "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် (Mystery/True Crime)": f"{yt_verb}. Create a suspenseful mystery/true crime style narration.",
+                                "👻 အမှောင်ရသ (Gothic/Midnight Tale)": f"{yt_verb}. Re-imagine the content into a dark, mysterious narrative.",
+                                "😂 ခနဲ့တဲ့တဲ့ သရော်စာ (Sarcastic Roast)": f"{yt_verb}. Create a highly sarcastic, dry, and mocking commentary.",
+                                "🎓 ပညာရေး / ဗဟုသုတ ရှင်းလင်းချက် (Educational Explainer)": f"{yt_verb}. Create a clear, informative educational explainer script.",
+                                "🎙️ ဇာတ်ကြောင်းပြော (Professional Narration)": f"{yt_verb}. Convert the input into a professional narration script.",
+                                "🗣️ ပေါ့တ်ကတ်စ် အမေးအဖြေ (Podcast Q&A)": f"{yt_verb}. Convert them into a structured Q&A interview format.",
+                                "📱 Viral Shorts Script (စက္ကန့် ၆၀ စာ)": f"{yt_verb}. Create a fast-paced viral script for TikTok/Reels (60s limit).",
+                                "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)": f"{yt_verb}. Provide a detailed summary with bullet points.",
+                                "🧠 အိုင်ဒီယာ တိုးချဲ့ခြင်း (Idea Brainstorm & Outline)": f"{yt_verb}. Expand this idea into a professional 5-point content outline."
+                            }
+                            
+                            target_task = task_instructions.get(yt_script_style, f"{yt_verb}. Provide a detailed script.")
+                            
+                            prompt = f"""
+                            CRITICAL INSTRUCTION: Output MUST be entirely in natural BURMESE language.
+                            ACT AS: A Professional Creative Director and Master Scriptwriter.
+                            
+                            TASK: {target_task}
+                            USER SPECIAL REQUEST: {yt_custom_instructions if yt_custom_instructions else 'None'}
+                            
+                            --- EXTRACTED YOUTUBE DATA ---
+                            {smart_data}
+                            ------------------------------
+                            
+                            RULES: Use engaging, natural flowing Burmese (တယ်, မယ်, တဲ့). Be highly descriptive!
+                            """
                         
                         # 💡 AI ဖြင့် Generate လုပ်ခြင်း
                         st.session_state.yt_final_script = generate_content_safe(prompt)
@@ -609,20 +651,30 @@ elif selected_menu == "🔴 YouTube Master":
                     except Exception as e:
                         st.error(f"⚠️ Error: {e}")
 
-        # 💡 ရလဒ်ပြသခြင်းနှင့် Action ခလုတ်များ (State မှတ်ထားသဖြင့် ပျောက်မသွားပါ)
+        # 💡 ရလဒ်ပြသခြင်းနှင့် ခလုတ် (၃) မျိုး (TTS, Vault, Download)
         if st.session_state.yt_final_script:
             st.success(f"✅ {yt_script_style} အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ!")
             st.markdown(st.session_state.yt_final_script)
             
-            c1, c2 = st.columns(2)
+            # ခလုတ် ၃ ခု ခွဲရန်
+            c1, c2, c3 = st.columns(3)
             with c1:
                 if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 6)", key="send_yt_tts", use_container_width=True):
                     st.session_state.tts_text_area = st.session_state.yt_final_script
-                    st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ! အသံထွက်ဖတ်ကြည့်နိုင်ပါပြီ။")
+                    st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ!")
             with c2:
-                if st.button("💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်", key="save_yt_vault", use_container_width=True):
-                    save_to_vault(f"YouTube Extract: {yt_script_style}", st.session_state.yt_final_script, "YouTube Master")
-                    st.success("✅ မှတ်ဉာဏ်တိုက် (Tab 7) တွင် အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!")
+                if st.button("💾 မှတ်ဉာဏ်တိုက် သိမ်းမည်", key="save_yt_vault", use_container_width=True):
+                    save_to_vault(f"YouTube Extract", st.session_state.yt_final_script, "YouTube Master")
+                    st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
+            with c3:
+                # 💡 ဒေါင်းလုဒ် ခလုတ် အသစ်
+                file_ext = "srt" if "Transcript" in yt_script_style else "txt"
+                st.download_button(
+                    label=f"📥 ဖိုင် ဒေါင်းလုဒ်ဆွဲရန် (.{file_ext})", 
+                    data=st.session_state.yt_final_script, 
+                    file_name=f"universal_studio_{int(time.time())}.{file_ext}", 
+                    use_container_width=True
+                )
 
 # --- MENU 5: SMART TRANSLATOR ---
 elif selected_menu == "🦁 Smart Translator":
@@ -845,6 +897,7 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
 
