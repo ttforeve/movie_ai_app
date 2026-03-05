@@ -872,9 +872,13 @@ elif selected_menu == "🎙️ Audio Studio":
 elif selected_menu == "📚 မှတ်ဉာဏ်တိုက်":
     st.header("📚 Memory Vault")
     saved_items = load_vault()
-    for item in reversed(saved_items):
-        with st.expander(f"📖 {item['title']} ({item['type']})"):
-            st.write(item['content'])
+    
+    if not saved_items:
+        st.info("မှတ်ဉာဏ်တိုက်ထဲတွင် ဘာမှ မရှိသေးပါ။")
+    else:
+        for item in reversed(saved_items):
+            with st.expander(f"📖 {item['title']} ({item['type']})"):
+                st.write(item['content'])
 
 elif selected_menu == "🕵️‍♂️ Lore Hunter":
     st.header("🕵️‍♂️ Lore Hunter & World Explorer")
@@ -909,20 +913,20 @@ elif selected_menu == "🕵️‍♂️ Lore Hunter":
     st.write("---")
 
     # ==========================================
-    # 🌍 အပိုင်း (၂): YouTube Channel များမှ ခြေရာခံခြင်း
+    # 🌍 အပိုင်း (၂): YouTube Channel များမှ ခြေရာခံခြင်း + AI အိုင်ဒီယာ
     # ==========================================
     st.subheader("🌍 World Explorer (ကမ္ဘာ့အဆင့် မှတ်တမ်းတင် Channel များ)")
-    st.write("Nat Geo, Discovery ကဲ့သို့သော နာမည်ကြီး Channel များမှ နောက်ဆုံးတင်ထားသော ဗီဒီယိုများကို ခြေရာခံပါ။")
+    st.write("Nat Geo, Discovery ကဲ့သို့သော နာမည်ကြီး Channel များမှ နောက်ဆုံးတင်ထားသော ဗီဒီယိုများကို ခြေရာခံပြီး မြန်မာလို အိုင်ဒီယာ ဖန်တီးပါ။")
     
     explorer_channels = {
         # 🌿 သဘာဝတရား နှင့် တိရစ္ဆာန်များ (Nature & Wildlife)
         "National Geographic": "https://www.youtube.com/@NatGeo/videos",
-        "Nat Geo WILD (Animals)": "https://www.youtube.com/@NatGeoAnimals/videos", # 💡 Handle အသစ် ပြင်ထားသည်
+        "Nat Geo WILD (Animals)": "https://www.youtube.com/@NatGeoAnimals/videos", 
         "Discovery Channel": "https://www.youtube.com/@Discovery/videos",
         "BBC Earth": "https://www.youtube.com/@bbcearth/videos",
         "Animal Planet": "https://www.youtube.com/@AnimalPlanet/videos",
         "Free Documentary (Nature)": "https://www.youtube.com/@FreeDocumentaryNature/videos",
-        "Real Wild (Wildlife Docs)": "https://www.youtube.com/@RealWild/videos", # 💡 အသစ် - တောရိုင်းတိရစ္ဆာန် အမိုက်စား Channel ကြီး
+        "Real Wild (Wildlife Docs)": "https://www.youtube.com/@RealWild/videos",
         "Brave Wilderness": "https://www.youtube.com/@BraveWilderness/videos",
         "Animalogic": "https://www.youtube.com/@Animalogic/videos",
 
@@ -955,9 +959,9 @@ elif selected_menu == "🕵️‍♂️ Lore Hunter":
     else:
         channel_url = explorer_channels[selected_channel]
 
-    if st.button("📡 နောက်ဆုံး ဗီဒီယို (၃) ခုကို စစ်ဆေးမည်", use_container_width=True):
-        if channel_url:
-            with st.spinner(f"{selected_channel} မှ ဗီဒီယိုများကို ဆွဲယူနေပါသည်..."):
+    if st.button("📡 နောက်ဆုံး ဗီဒီယိုများကို ရှာဖွေ၍ အိုင်ဒီယာ ဖန်တီးမည်", use_container_width=True, type="primary"):
+        if channel_url and api_key:
+            with st.spinner(f"{selected_channel} မှ ဗီဒီယိုများကို ဆွဲယူနေပါသည်... ⚡"):
                 try:
                     # 💡 extract_flat ကိုသုံးပြီး ဗီဒီယိုများကို အမြန်ဆွဲယူမည်
                     ydl_opts = {'extract_flat': True, 'playlist_items': '1:3', 'quiet': True}
@@ -968,24 +972,68 @@ elif selected_menu == "🕵️‍♂️ Lore Hunter":
                         if not entries:
                             st.warning("⚠️ ဗီဒီယို အသစ်များ မတွေ့ရှိပါ။ (URL အဆုံးတွင် '/videos' ပါ/မပါ စစ်ဆေးပါ)")
                         else:
-                            st.success("✅ နောက်ဆုံးရ ဗီဒီယိုများ ရရှိပါပြီ!")
+                            # 💡 AI သို့ပို့ရန် Data စုစည်းခြင်း (String အဖြစ် ပေါင်းခြင်း)
+                            combined_info = ""
                             for entry in entries:
                                 title = entry.get('title', 'Unknown Title')
                                 vid_id = entry.get('id', '')
                                 link = f"https://youtube.com/watch?v={vid_id}"
-                                st.write(f"🎬 **{title}**\n🔗 [ဒီမှာ နှိပ်၍ ကြည့်ပါ]({link})")
-                                
+                                combined_info += f"Title: {title}\nLink: {link}\n\n"
+                            
+                            st.info("✅ ဗီဒီယိုများ ရှာဖွေတွေ့ရှိပါသည်။ AI ဖြင့် မြန်မာလို အိုင်ဒီယာများအဖြစ် ပြောင်းလဲနေပါသည်... ⏳")
+                            
+                            # 💡 ရလာတဲ့ အင်္ဂလိပ် Title ကို Gemini ထံပို့၍ မြန်မာလို အိုင်ဒီယာအဖြစ် ပြောင်းလဲခိုင်းခြင်း
+                            analysis_prompt = f"""
+                            I have fetched the absolutely latest 3 videos from {selected_channel}. Here is the raw data:
+                            {combined_info}
+
+                            Please present this information nicely in purely engaging BURMESE language. For each video:
+                            1. 🎬 **ခေါင်းစဉ်:** Translate the title beautifully into Burmese.
+                            2. 🔗 **Link:** Provide the original YouTube link.
+                            3. 💡 **အိုင်ဒီယာ:** Briefly explain (2-3 sentences) why this topic is highly interesting and how it can be adapted into a captivating Burmese narration script or documentary video. Make it sound exciting!
+                            """
+                            
+                            res = generate_content_safe(analysis_prompt)
+                            st.success(f"✅ {selected_channel} မှ နောက်ဆုံးရ (Up-to-date) အိုင်ဒီယာများ ရရှိပါပြီ!")
+                            st.markdown(res)
+                            
                 except Exception as e:
-                    st.error(f"⚠️ Error: ဤ Channel ကို ဖတ်၍မရပါ။ လင့်ခ်မှန်ကန်မှု စစ်ဆေးပါ။ ({e})")
+                    st.error(f"⚠️ YouTube နှင့် ချိတ်ဆက်ရာတွင် အခက်အခဲရှိနေပါသည်။ Error: {e}")
 
 elif selected_menu == "🎨 Visual Director":
-    st.header("🚀 SEO & Captions Studio")
-    seo_text = st.text_area("ဇာတ်ညွှန်း အကြမ်းထည်ကို ထည့်ပါ:")
-    if st.button("🔥 Generate SEO Pack", type="primary"):
+    st.header("🚀 Social Media SEO & Captions Studio")
+    st.caption("ဗီဒီယို တင်တော့မည်ဆိုပါက လူကြည့်များစေရန် (Viral) ဆွဲဆောင်မှုရှိသော Caption များကို အလိုအလျောက် ရေးသားပေးပါမည်။")
+        
+    seo_text = st.text_area("ဗီဒီယို အကြောင်းအရာ သို့မဟုတ် ဇာတ်ညွှန်း အကြမ်းထည်ကို ဤနေရာတွင် ထည့်ပါ:", height=200, placeholder="ဥပမာ - မုန်တိုင်းထဲက တံငါသည်တွေအကြောင်း ဇာတ်လမ်း...")
+        
+    col_s1, col_s2 = st.columns(2)
+    with col_s1:
+        platform = st.radio("တင်မည့် နေရာ (Platform):", ["Facebook Video / Reel", "YouTube Video / Shorts", "TikTok"])
+    with col_s2:
+        caption_tone = st.radio("Caption ပုံစံ:", ["ဆွဲဆောင်မှုရှိသော (Engaging / Clickable)", "ခံစားချက်အပြည့် (Emotional / Deep)", "ဖန်တီးရှင်စတိုင် (Behind the Scenes)"])
+
+    if st.button("🔥 Generate SEO Pack", type="primary", use_container_width=True):
         if api_key and seo_text:
-            with st.spinner("Generating..."):
-                prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
-                st.markdown(generate_content_safe(prompt))
+            with st.spinner(f"{platform} အတွက် Captions နှင့် Tags များ ရေးသားနေပါသည်... ⏳"):
+                seo_prompt = f"""
+                Act as an expert Social Media Marketer. Create a highly engaging Title, Caption, and Keywords/Hashtags for a {platform} based on this content:
+                
+                {seo_text}
+                
+                TONE: {caption_tone}.
+                CRITICAL RULES:
+                1. Output must be in highly engaging, natural BURMESE language.
+                2. Include a catchy Title/Hook.
+                3. Write the main body of the caption.
+                4. Suggest 5-7 highly relevant trending hashtags.
+                5. Use appropriate Emojis.
+                """
+                res = generate_content_safe(seo_prompt)
+                st.success("✅ အသင့်သုံးနိုင်ပါပြီ!")
+                st.markdown(res)
+        elif not seo_text:
+            st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
 
 
 
