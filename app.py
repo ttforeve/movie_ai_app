@@ -166,7 +166,76 @@ if selected_menu == "💡 Idea to Script":
             if st.button("💾 မှတ်ဉာဏ်တိုက်သို့ သိမ်းမည်"):
                 save_to_vault(mm_topic, st.session_state.mm_final_script, mm_tone)
                 st.success("Saved to Vault!")
+    with eng_tab:
+        st.subheader("✍️ English Creative Studio")
+        st.caption("Perfect for Teenagers, Children, and Heartwarming Adult Stories")
+        
+        if 'eng_final_text' not in st.session_state: st.session_state.eng_final_text = ""
+        if 'eng_target_audience' not in st.session_state: st.session_state.eng_target_audience = "Teenagers / Gen Z"
 
+        eng_topic = st.text_input("📝 What is the story about? (Topic)", placeholder="e.g., A magical forest, A lost letter...", key="eng_topic")
+        
+        col_e1, col_e2, col_e3 = st.columns(3)
+        with col_e1:
+            eng_format = st.selectbox("📜 Format", [
+                "Short Story", "Flash Fiction", "Poem", "Blog Article", 
+                "Children's Story", "Children's Song",
+                "Chicken Soup for the Soul (Inspirational)", "Short Joke / Anecdote"
+            ], key="eng_format")
+            
+        with col_e2:
+            eng_genre = st.selectbox("🎭 Genre", [
+                "Coming-of-age", "Comedy / Humor", "Fantasy / Magic", 
+                "Sci-Fi", "Mystery / Thriller", "Horror", "Romance"
+            ], key="eng_genre")
+            
+        with col_e3:
+            eng_length = st.radio("📏 Length", [
+                "Short (~150 words)", "Medium (~300 words)", "Long (~500 words)"
+            ], key="eng_length")
+
+        st.write("---")
+        if st.button("✨ Generate English Content", type="primary", use_container_width=True, key="btn_eng_gen"):
+            if api_key and eng_topic:
+                with st.spinner("Crafting your creative piece..."):
+                    current_audience = "Teenagers / Gen Z" 
+                    if eng_genre == "Romance" or eng_format == "Chicken Soup for the Soul (Inspirational)":
+                        current_audience = "Adults / Middle-aged"
+                    elif "Children" in eng_format:
+                        current_audience = "Children / Kids"
+                        
+                    st.session_state.eng_target_audience = current_audience
+
+                    eng_prompt = f"""
+                    CRITICAL INSTRUCTION: Write entirely in English. Do NOT output any conversational text, ONLY the final creative piece.
+                    Topic: {eng_topic}
+                    Format: {eng_format}
+                    Genre: {eng_genre}
+                    Target Audience: {current_audience}
+                    Length Requirement: {eng_length}. Strictly adhere to this word count limit.
+
+                    STYLE & TONE RULES:
+                    - 'Show, Don't Tell': Use vivid imagery, emotions, and sensory details.
+                    - AVOID overused AI clichés (DO NOT use words like: delve, tapestry, unveil, testament, symphony, dance of).
+                    - Ensure the tone perfectly matches the Target Audience ({current_audience}).
+                    """
+                    
+                    if "Chicken Soup" in eng_format:
+                        eng_prompt += "- TONE: Highly emotional, heartwarming, and relatable. Must conclude with a profound but gentle life lesson or realization.\n"
+                    elif "Song" in eng_format:
+                        eng_prompt += "- STRUCTURE: Write as a song with clear Verses and a catchy Chorus. Must have a rhythmic flow.\n"
+                    elif "Poem" in eng_format:
+                        eng_prompt += "- STRUCTURE: Use powerful poetic devices, rhythm, and metaphors.\n"
+
+                    st.session_state.eng_final_text = generate_content_safe(eng_prompt)
+
+        if st.session_state.eng_final_text:
+            st.success(f"✅ Created perfectly for: **{st.session_state.eng_target_audience}**")
+            st.code(st.session_state.eng_final_text, language="markdown")
+            
+            if st.button("📲 Send to AI TTS (Tab 6)", key="send_eng_tts"):
+                st.session_state.tts_text_area = st.session_state.eng_final_text 
+                st.success("✅ Text sent to Tab 6 Audio Studio!")
 # --- MENU 2 & 3: LOCAL VIDEO / AUDIO ---
 elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
     st.header(f"{selected_menu} Hub")
@@ -304,8 +373,13 @@ elif selected_menu == "🎙️ Audio Studio":
     tts_tab, tele_tab = st.tabs(["🗣️ AI TTS Generator", "🎤 Teleprompter"])
 
     with tts_tab:
-        text_input = st.text_area("Text to read:", height=150) 
+        # 💡 NEW: Session State ကို လက်ခံပေးမည့် အပိုင်း
+        if "tts_text_area" not in st.session_state: 
+            st.session_state.tts_text_area = ""
+            
+        text_input = st.text_area("Text to read:", value=st.session_state.tts_text_area, height=150) 
         voice = st.selectbox("Voice:", ["my-MM-NilarNeural", "my-MM-ThihaNeural", "en-US-JennyNeural"])
+        
         if st.button("🔊 Generate AI Voice", type="primary"):
             if text_input:
                 with st.spinner("Generating..."):
@@ -439,6 +513,7 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
 
