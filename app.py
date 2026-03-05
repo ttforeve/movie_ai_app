@@ -493,19 +493,22 @@ elif selected_menu in ["📂 Video to Script", "🎵 Audio to Script"]:
                     
                     target_task = task_instructions.get(script_style, f"{media_verb}. Analyze the media and provide a detailed script.")
                     
-                    # 💡 Professional Master Prompt (VOICEOVER PRO EDITION)
+                    # 💡 Professional Master Prompt (DEEP ANALYSIS EDITION)
                     master_prompt = f"""
                     CRITICAL INSTRUCTION: Your ENTIRE response MUST be in BURMESE language.
-                    ACT AS: A Professional Creative Director and Master Scriptwriter.
+                    ACT AS: A Meticulous Content Analyst and Master Scriptwriter. 
+                    
+                    IMPORTANT RULE: DO NOT SKIM or hallucinate. You must pay deep attention to every second of the media, analyzing exact spoken words, visual actions, and emotional tone before writing.
                     
                     TASK: {target_task}
                     USER SPECIAL REQUEST: {custom_instructions if custom_instructions else 'None'}
                     
                     🔴 UNIVERSAL VOICEOVER & PRONOUN RULES:
-                    1. NO ARBITRARY NAMES: NEVER use random placeholder Burmese names. ALWAYS use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They), or descriptive terms.
-                    2. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud by a voice actor.
-                    3. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့). AVOID robotic book language (သည်, ၏). Make it captivating!
-                    4. DRAMATIC PAUSES: Use ellipses (...) frequently to guide the voice actor's breathing and build suspense.
+                    1. STRICT ACCURACY: Base your writing strictly on what is seen or heard in the file. Do not make up events.
+                    2. NO ARBITRARY NAMES: NEVER use random placeholder Burmese names. ALWAYS use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They).
+                    3. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud.
+                    4. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့). AVOID robotic book language (သည်, ၏).
+                    5. DRAMATIC PAUSES: Use ellipses (...) frequently to guide breathing and build suspense.
                     """
                     
                     # SRT တောင်းဆိုပါက သီးသန့် Rule ထည့်ရန်
@@ -612,7 +615,7 @@ elif selected_menu == "🔴 YouTube Master":
                             
                             prompt = f"""
                             CRITICAL INSTRUCTION: Output MUST be entirely in natural BURMESE language.
-                            ACT AS: A Professional Creative Director and Master Scriptwriter.
+                            ACT AS: A Highly Meticulous Content Analyst and Master Scriptwriter.
                             
                             TASK: {target_task}
                             USER SPECIAL REQUEST: {yt_custom_instructions if yt_custom_instructions else 'None'}
@@ -621,11 +624,13 @@ elif selected_menu == "🔴 YouTube Master":
                             {smart_data}
                             ------------------------------
                             
-                            🔴 UNIVERSAL VOICEOVER & PRONOUN RULES:
-                            1. NO ARBITRARY NAMES: NEVER use random placeholder Burmese names. ALWAYS use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They), or descriptive terms.
-                            2. VOICEOVER OPTIMIZED: Write strictly for the EAR. It must sound cinematic, rhythmic, and natural when read aloud by a voice actor.
-                            3. SPOKEN BURMESE: Use natural spoken endings (တယ်, မယ်, တဲ့). AVOID robotic book language (သည်, ၏).
-                            4. PAUSES & PACING: Use ellipses (...) frequently to indicate natural pauses for the voice actor.
+                            🔴 DEEP ANALYSIS RULES:
+                            1. DO NOT HALLUCINATE: Base your script strictly on the provided Extracted YouTube Data (Transcript, Title, Description). Do NOT invent scenarios that are not mentioned in the text.
+                            2. CHRONOLOGICAL FLOW: If a transcript is provided, map out the story chronologically. Capture the true essence and exact points made in the video.
+                            3. NO ARBITRARY NAMES: Use appropriate pronouns (သူ, သူမ, ၎င်းတို့) instead of making up random names.
+                            4. VOICEOVER OPTIMIZED: Write for the EAR. Ensure it sounds cinematic and professional.
+                            5. SPOKEN BURMESE: Use conversational endings (တယ်, မယ်, တဲ့). AVOID robotic language (သည်, ၏).
+                            6. PAUSES & PACING: Use ellipses (...) to indicate dramatic pauses.
                             """
                         
                         # 💡 AI ဖြင့် Generate လုပ်ခြင်း
@@ -1022,3 +1027,4 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
