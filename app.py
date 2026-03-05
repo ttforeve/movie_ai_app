@@ -580,7 +580,7 @@ elif selected_menu == "🔴 YouTube Master":
             "📱 Viral Shorts Script (စက္ကန့် ၆၀ စာ)", 
             "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)", 
             "🧠 အိုင်ဒီယာ တိုးချဲ့ခြင်း (Idea Brainstorm & Outline)", 
-            "📄 စာသားအပြည့်အစုံ (Transcript / SRT)"
+            "📄 မူရင်း စာသားအပြည့်အစုံ (Original English SRT)" # 💡 ဒီနေရာလေး နာမည်ပြောင်းထားသည်
         ]
         
         yt_script_style = st.selectbox("ဖန်တီးလိုသော အမျိုးအစားကို ရွေးချယ်ပါ:", style_options)
@@ -594,17 +594,17 @@ elif selected_menu == "🔴 YouTube Master":
                     try:
                         smart_data = fetch_youtube_smart_data(yt_url)
                         
-                        # 💡 1. SRT / Transcript အတွက် သီးသန့် Prompt (အခြားဟာတွေနဲ့ မရောအောင်)
-                        if "Transcript" in yt_script_style:
+                        # 💡 1. Original English SRT အတွက် သီးသန့် Prompt (ဘာသာမပြန်စေရန် တားမြစ်ထားသည်)
+                        if "Original" in yt_script_style or "SRT" in yt_script_style:
                             prompt = f"""
-                            CRITICAL INSTRUCTION: You are a Professional Subtitle Translator.
-                            TASK: Translate the original spoken transcript into natural BURMESE and format it STRICTLY as an SRT file.
+                            CRITICAL INSTRUCTION: You are a Professional Subtitle Formatter.
+                            TASK: Convert the provided extracted YouTube data into a STRICT, perfectly formatted SRT file in its ORIGINAL LANGUAGE (Usually English. DO NOT translate to Burmese).
                             
                             RULES:
-                            1. You MUST output standard SRT format (e.g., 1 \n 00:00:00,000 --> 00:00:05,000 \n [Burmese Text]).
+                            1. You MUST output standard SRT format (e.g., 1 \n 00:00:00,000 --> 00:00:05,000 \n [Original Text]).
                             2. Use the timestamps provided in the data (e.g., [01:15]) to accurately estimate the SRT timecodes.
-                            3. TRANSLATE the English text into natural Burmese line-by-line.
-                            4. DO NOT write a summary, intro, or outro. ONLY output the SRT formatted text starting with the number 1.
+                            3. KEEP the exact original words. DO NOT translate, do not summarize, and do not explain.
+                            4. DO NOT write an intro, outro, or conversational text. ONLY output the SRT formatted text starting with the number 1.
                             
                             USER SPECIAL REQUEST: {yt_custom_instructions if yt_custom_instructions else 'None'}
                             
@@ -613,7 +613,7 @@ elif selected_menu == "🔴 YouTube Master":
                             ------------------------------
                             """
                         else:
-                            # 💡 2. အခြား Content အမျိုးအစားများအတွက် ပုံမှန် Prompt
+                            # 💡 2. အခြား Content အမျိုးအစားများအတွက် ပုံမှန် မြန်မာဘာသာ Prompt
                             yt_verb = "Read the extracted YouTube data carefully"
                             task_instructions = {
                                 "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် (Cinematic Recap)": f"{yt_verb}. Rewrite this as a high-energy movie recap script.",
@@ -667,8 +667,8 @@ elif selected_menu == "🔴 YouTube Master":
                     save_to_vault(f"YouTube Extract", st.session_state.yt_final_script, "YouTube Master")
                     st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
             with c3:
-                # 💡 ဒေါင်းလုဒ် ခလုတ် အသစ်
-                file_ext = "srt" if "Transcript" in yt_script_style else "txt"
+                # 💡 ဒေါင်းလုဒ် ခလုတ် (.srt လား .txt လား ခွဲပေးထားသည်)
+                file_ext = "srt" if ("Original" in yt_script_style or "SRT" in yt_script_style) else "txt"
                 st.download_button(
                     label=f"📥 ဖိုင် ဒေါင်းလုဒ်ဆွဲရန် (.{file_ext})", 
                     data=st.session_state.yt_final_script, 
@@ -676,18 +676,107 @@ elif selected_menu == "🔴 YouTube Master":
                     use_container_width=True
                 )
 
-# --- MENU 5: SMART TRANSLATOR ---
+# --- MENU 5: SMART TRANSLATOR (PRO EDITION) ---
 elif selected_menu == "🦁 Smart Translator":
-    st.header("🦁 Smart Translator (Pro Edition)")
-    source_text = st.text_area("📝 အင်္ဂလိပ် စာသား/SRT ထည့်ပါ:", height=250)
-    trans_mode = st.radio("ပုံစံ:", ["💬 SRT စာတန်းထိုး", "🎙️ Voiceover ဇာတ်ညွှန်း", "📱 Social Media Post"])
-    if st.button("✨ အသက်ဝင်အောင် ဘာသာပြန်မည်", type="primary"):
+    st.header("🦁 Smart Translator (Pro Edition) 🌐")
+    st.caption("အင်္ဂလိပ်စာသား သို့မဟုတ် SRT ဖိုင်များကို အသက်ဝင်သော မြန်မာဘာသာသို့ အမိုက်စား ပြောင်းလဲမည် (အမှိုက်စာ/တိုက်ရိုက်ဘာသာပြန်များ လုံးဝမပါဝင်စေရ)")
+    
+    source_text = st.text_area("📝 အင်္ဂလိပ် စာသား သို့မဟုတ် SRT ကို ဤနေရာတွင် ကူးထည့်ပါ:", height=250)
+    
+    st.write("---")
+    
+    # 💡 ရွေးချယ်စရာ ပုံစံများ (SRT အတိအကျ + ကျန်တဲ့ Content Styles များ)
+    trans_mode = st.selectbox("ဘာသာပြန်လိုသော ပုံစံကို ရွေးပါ:", [
+        "💬 SRT စာတန်းထိုး အတိအကျ (Timestamps မပျက်စေရ)",
+        "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် Voiceover (Cinematic Recap)",
+        "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)",
+        "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် Voiceover (Mystery/True Crime)",
+        "👻 အမှောင်ရသ ဇာတ်လမ်း (Gothic/Midnight Tale)",
+        "😂 ခနဲ့တဲ့တဲ့ သရော်စာ (Sarcastic Roast)",
+        "🎓 ပညာရေး / ဗဟုသုတ ရှင်းလင်းချက် (Educational Explainer)",
+        "🎙️ ပရော်ဖက်ရှင်နယ် ဇာတ်ကြောင်းပြော (Pro Narration)",
+        "📱 Viral Social Media Post / Shorts (စက္ကန့် ၆၀ စာ)",
+        "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)"
+    ])
+    
+    trans_custom_instructions = st.text_input("💡 အထူးတောင်းဆိုချက် (Optional):", placeholder="ဥပမာ - ပိုပြီး ရယ်စရာကောင်းအောင် ပြင်ရေးပေး...")
+
+    if 'trans_final_script' not in st.session_state: st.session_state.trans_final_script = ""
+
+    if st.button("✨ အသက်ဝင်အောင် ဘာသာပြန်မည်", type="primary", use_container_width=True):
         if api_key and source_text:
-            with st.spinner("Translating..."):
-                prompt = f"Translate the following into natural BURMESE as a {trans_mode}. Make it highly engaging.\n\n{source_text}"
-                res = generate_content_safe(prompt)
-                st.success("✅ ဘာသာပြန်ဆိုပြီးပါပြီ!")
-                st.markdown(res)
+            with st.spinner("အကောင်းဆုံး မြန်မာဘာသာသို့ ပြောင်းလဲနေပါသည်... ⏳"):
+                
+                # 💡 Base Translation Prompt (အမှိုက်စာ မဖြစ်စေရန် ထိန်းချုပ်ခြင်း)
+                base_prompt = f"""
+                CRITICAL INSTRUCTION: You are a Master Translator and Copywriter. 
+                Translate and transform the following English text into natural, highly engaging BURMESE language.
+                STRICT RULE: DO NOT use literal or direct word-for-word translations (Google Translate style). Use natural Burmese idioms, phrasing, and sentence structures (တယ်, မယ်, တဲ့).
+                """
+                
+                # 💡 Format Specific Rules
+                if "SRT" in trans_mode:
+                    base_prompt += """
+                    🔴 SRT SUBTITLE PROTOCOL:
+                    1. The user has provided an SRT file format. You MUST strictly preserve the SRT structure (Sequence numbers, Timestamps `00:00:00,000 --> 00:00:05,000`, and blank lines).
+                    2. ONLY translate the dialogue text. DO NOT alter the timestamps or sequence numbers.
+                    3. Make the Burmese subtitles easy to read, concise, and cinematic. Avoid awkward direct translations.
+                    """
+                elif "Sarcastic" in trans_mode:
+                    base_prompt += "\n🔴 TONE: Highly sarcastic, witty, and slightly mocking (ခနဲ့တဲ့တဲ့ သရော်စာ). Use casual Burmese."
+                elif "Soulful" in trans_mode:
+                    base_prompt += "\n🔴 TONE: Deeply emotional, heartwarming, and poetic. Focus on human feelings."
+                elif "Mystery" in trans_mode:
+                    base_prompt += "\n🔴 TONE: Suspenseful, dark, and thrilling true-crime narrator style."
+                elif "Recap" in trans_mode:
+                    base_prompt += "\n🔴 TONE: Fast-paced, high-energy YouTube movie recap style."
+                elif "Social Media" in trans_mode:
+                    base_prompt += "\n🔴 TONE: Catchy, engaging, and viral. Include emojis and spacing. End with a strong Call-to-Action and 3 hashtags."
+                elif "Key Takeaways" in trans_mode:
+                    base_prompt += "\n🔴 TONE: Professional and clear. Summarize the translated text into well-organized bullet points."
+                else:
+                    base_prompt += f"\n🔴 TARGET STYLE: {trans_mode}. Adjust your tone perfectly to match this style."
+
+                # 💡 Finalizing the Prompt
+                prompt = f"""
+                {base_prompt}
+                
+                USER SPECIAL REQUEST: {trans_custom_instructions if trans_custom_instructions else 'None'}
+                
+                --- ORIGINAL TEXT / SRT ---
+                {source_text}
+                ---------------------------
+                
+                OUTPUT REQUIREMENT: Return ONLY the final transformed Burmese text. No introductory or concluding remarks.
+                """
+                
+                try:
+                    st.session_state.trans_final_script = generate_content_safe(prompt)
+                except Exception as e:
+                    st.error(f"⚠️ Error: {e}")
+
+    # 💡 ရလဒ်ပြသခြင်းနှင့် Action ခလုတ်များ
+    if st.session_state.trans_final_script:
+        st.success(f"✅ {trans_mode} သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ!")
+        st.markdown(st.session_state.trans_final_script)
+        
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 6)", key="send_trans_tts", use_container_width=True):
+                st.session_state.tts_text_area = st.session_state.trans_final_script
+                st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ!")
+        with c2:
+            if st.button("💾 မှတ်ဉာဏ်တိုက် သိမ်းမည်", key="save_trans_vault", use_container_width=True):
+                save_to_vault(f"Translated: {trans_mode}", st.session_state.trans_final_script, "Smart Translator")
+                st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
+        with c3:
+            file_ext = "srt" if "SRT" in trans_mode else "txt"
+            st.download_button(
+                label=f"📥 ဖိုင် ဒေါင်းလုဒ်ဆွဲရန် (.{file_ext})", 
+                data=st.session_state.trans_final_script, 
+                file_name=f"translated_studio_{int(time.time())}.{file_ext}", 
+                use_container_width=True
+            )
 
 # --- TAB 6: AUDIO STUDIO ---
 elif selected_menu == "🎙️ Audio Studio":
@@ -897,6 +986,7 @@ elif selected_menu == "🎨 Visual Director":
             with st.spinner("Generating..."):
                 prompt = f"Create a viral Title, engaging Caption in Burmese, and 5 hashtags for Social Media based on this: {seo_text}"
                 st.markdown(generate_content_safe(prompt))
+
 
 
 
