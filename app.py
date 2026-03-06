@@ -188,7 +188,8 @@ if selected_menu == "💡 Idea to Script":
         
         col1, col2, col3, col4 = st.columns(4)
         with col1: 
-            mm_platform = st.selectbox("📱 Platform", ["Facebook Video", "TikTok / Reels", "YouTube Video", "Voiceover Only"], key="mm_plat")
+            # 💡 Seamless Loop ကို Platform မှာ ထပ်တိုးထားသည်
+            mm_platform = st.selectbox("📱 Platform", ["Facebook Video", "TikTok / Reels", "🔄 Seamless Loop Reel (၃၀ စက္ကန့်)", "YouTube Video", "Voiceover Only"], key="mm_plat")
         with col2: 
             mm_tone = st.selectbox("🎭 Tone / အမျိုးအစား", [
                 "💖 Soulful / Inspirational",
@@ -297,6 +298,34 @@ if selected_menu == "💡 Idea to Script":
         if "Third-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: THIRD-PERSON.\n"
         elif "First-Person" in mm_pov: mm_rules += "NARRATIVE STYLE: FIRST-PERSON.\n"
 
+        # 💡 Seamless Loop အတွက် သီးသန့် Prompt Injection (The Magic Sauce)
+        if "Seamless Loop" in mm_platform:
+            mm_rules += """
+            🔴 CRITICAL FORMAT RULE: SEAMLESS LOOP REEL
+            1. The script MUST end with an incomplete sentence or a cliffhanger phrase (The Outro).
+            2. That exact incomplete sentence MUST flow flawlessly into the very FIRST sentence of the script (The Hook).
+            3. When the viewer watches it on repeat, they should not realize the video has restarted.
+            
+            EXAMPLE OF A PERFECT LOOP:
+            [Outro]: "...အဲ့ဒီတော့ သင်က တကယ်လို့ သိချင်တယ်ဆိုရင်..."
+            [Hook]: "...ဒီအချက် (၃) ချက်က သင့်ဘဝကို ပြောင်းလဲပေးပါလိမ့်မယ်။"
+            (When played together: "...အဲ့ဒီတော့ သင်က တကယ်လို့ သိချင်တယ်ဆိုရင်... ဒီအချက် (၃) ချက်က သင့်ဘဝကို ပြောင်းလဲပေးပါလိမ့်မယ်။")
+            
+            FORMAT TO OUTPUT:
+            🎬 **[ခေါင်းစဉ်]**
+            
+            🔄 **[Loop ချိတ်ဆက်ပုံ ရှင်းလင်းချက်]**
+            (Explain briefly in Burmese how the Outro connects to the Hook).
+            
+            📝 **[ဇာတ်ညွှန်း]**
+            [Hook / ဗီဒီယို အစ] - ...
+            [Body / အကြောင်းအရာ] - ... (Keep it fast-paced, max 3 short points)
+            [Outro / ဗီဒီယို အဆုံး] - ... (Must be an incomplete thought that connects back to the hook).
+            """
+        else:
+            mm_rules += f"PLATFORM: Format the script appropriately for a {mm_platform}.\n"
+
+
         if gen_mm_outline and api_key and mm_topic:
             with st.spinner("Brainstorming Outline..."):
                 prompt = f"Create a 5-point OUTLINE for a {type_keyword} about '{mm_topic}'. MUST be 100% in Burmese. {mm_rules}"
@@ -324,7 +353,6 @@ if selected_menu == "💡 Idea to Script":
             
             c1, c2 = st.columns(2)
             with c1:
-                # 💡 ERROR ပြင်ဆင်ပြီး (clean_script_text ကို ဖြုတ်လိုက်ပါသည်)
                 if st.button("📲 AI TTS သို့ ပို့ရန်", key="send_mm_tts", use_container_width=True):
                     st.session_state.tts_text_area = st.session_state.mm_final_script
                     st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ!")
@@ -1046,5 +1074,6 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
 
 
