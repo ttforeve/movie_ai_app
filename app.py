@@ -667,25 +667,35 @@ elif selected_menu == "🔴 YouTube Master":
 # --- MENU 5: SMART TRANSLATOR (PRO EDITION) ---
 elif selected_menu == "🦁 Smart Translator":
     st.header("🦁 Smart Translator (Pro Edition) 🌐")
-    st.caption("အင်္ဂလိပ်စာသား သို့မဟုတ် SRT ဖိုင်များကို အသက်ဝင်သော မြန်မာဘာသာသို့ အမိုက်စား ပြောင်းလဲမည် (အမှိုက်စာ/တိုက်ရိုက်ဘာသာပြန်များ လုံးဝမပါဝင်စေရ)")
+    st.caption("စာသားများ သို့မဟုတ် SRT ဖိုင်များကို အသက်ဝင်သော ဘာသာစကားသို့ အမိုက်စား ပြောင်းလဲမည် (အမှိုက်စာ/တိုက်ရိုက်ဘာသာပြန်များ လုံးဝမပါဝင်စေရ)")
     
-    source_text = st.text_area("📝 အင်္ဂလိပ် စာသား သို့မဟုတ် SRT ကို ဤနေရာတွင် ကူးထည့်ပါ:", height=250)
+    source_text = st.text_area("📝 မူရင်း စာသား သို့မဟုတ် SRT ကို ဤနေရာတွင် ကူးထည့်ပါ:", height=250)
     
     st.write("---")
     
-    # 💡 ရွေးချယ်စရာ ပုံစံများ (SRT အတိအကျ + ကျန်တဲ့ Content Styles များ)
-    trans_mode = st.selectbox("ဘာသာပြန်လိုသော ပုံစံကို ရွေးပါ:", [
-        "💬 SRT စာတန်းထိုး အတိအကျ (Timestamps မပျက်စေရ)",
-        "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် Voiceover (Cinematic Recap)",
-        "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)",
-        "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် Voiceover (Mystery/True Crime)",
-        "👻 အမှောင်ရသ ဇာတ်လမ်း (Gothic/Midnight Tale)",
-        "😂 ခနဲ့တဲ့တဲ့ သရော်စာ (Sarcastic Roast)",
-        "🎓 ပညာရေး / ဗဟုသုတ ရှင်းလင်းချက် (Educational Explainer)",
-        "🎙️ ပရော်ဖက်ရှင်နယ် ဇာတ်ကြောင်းပြော (Pro Narration)",
-        "📱 Viral Social Media Post / Shorts (စက္ကန့် ၆၀ စာ)",
-        "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)"
-    ])
+    col_lang, col_mode = st.columns(2)
+    
+    with col_lang:
+        # 💡 ဘာသာစကား ရွေးချယ်ရန် ထပ်တိုးထားသော အပိုင်း
+        target_language = st.radio("🔄 ဘာသာပြန်လိုသော ပစ်မှတ်ဘာသာစကား:", [
+            "🇲🇲 မြန်မာဘာသာသို့ (To Burmese)", 
+            "🇬🇧 အင်္ဂလိပ်ဘာသာသို့ (To English)"
+        ])
+        
+    with col_mode:
+        # 💡 ရွေးချယ်စရာ ပုံစံများ
+        trans_mode = st.selectbox("ဘာသာပြန်လိုသော ပုံစံကို ရွေးပါ:", [
+            "💬 SRT စာတန်းထိုး အတိအကျ (Timestamps မပျက်စေရ)",
+            "🎬 ရုပ်ရှင်အနှစ်ချုပ် စတိုင် Voiceover (Cinematic Recap)",
+            "💖 နှလုံးသားခွန်အားပေး ရသစာတို (Soulful Story)",
+            "🕵️‍♂️ မှုခင်း/လျှို့ဝှက်ဆန်းကြယ် Voiceover (Mystery/True Crime)",
+            "👻 အမှောင်ရသ ဇာတ်လမ်း (Gothic/Midnight Tale)",
+            "😂 ခနဲ့တဲ့တဲ့ သရော်စာ (Sarcastic Roast)",
+            "🎓 ပညာရေး / ဗဟုသုတ ရှင်းလင်းချက် (Educational Explainer)",
+            "🎙️ ပရော်ဖက်ရှင်နယ် ဇာတ်ကြောင်းပြော (Pro Narration)",
+            "📱 Viral Social Media Post / Shorts (စက္ကန့် ၆၀ စာ)",
+            "📝 အဓိကအချက်များ ကောက်နုတ်ချက် (Key Takeaways)"
+        ])
     
     trans_custom_instructions = st.text_input("💡 အထူးတောင်းဆိုချက် (Optional):", placeholder="ဥပမာ - ပိုပြီး ရယ်စရာကောင်းအောင် ပြင်ရေးပေး...")
 
@@ -693,18 +703,26 @@ elif selected_menu == "🦁 Smart Translator":
 
     if st.button("✨ အသက်ဝင်အောင် ဘာသာပြန်မည်", type="primary", use_container_width=True):
         if api_key and source_text:
-            with st.spinner("အကောင်းဆုံး မြန်မာဘာသာသို့ ပြောင်းလဲနေပါသည်... ⏳"):
+            with st.spinner(f"{target_language.split(' ')[1]} ပြောင်းလဲနေပါသည်... ⏳"):
                 
-                # 💡 Base Translation Prompt (VOICEOVER PRO EDITION)
+                # 💡 Language Dynamics
+                if "Burmese" in target_language:
+                    lang_prompt = "natural, highly engaging BURMESE language."
+                    spoken_rule = "SPOKEN BURMESE: Use conversational endings (တယ်, မယ်, တဲ့)."
+                else:
+                    lang_prompt = "fluent, native-sounding, and engaging ENGLISH language."
+                    spoken_rule = "NATURAL ENGLISH: Use engaging vocabulary and proper pacing for a native speaker."
+
+                # 💡 Base Translation Prompt
                 base_prompt = f"""
                 CRITICAL INSTRUCTION: You are a Master Translator and Copywriter. 
-                Translate and transform the following English text into natural, highly engaging BURMESE language.
-                STRICT RULE: DO NOT use literal or direct word-for-word translations (Google Translate style). 
+                Translate and transform the following text into {lang_prompt}
+                STRICT RULE: DO NOT use literal or direct word-for-word translations (Google Translate style). Ensure the essence and tone are perfectly adapted.
                 
                 🔴 UNIVERSAL VOICEOVER & PRONOUN RULES (Apply unless formatting as strict SRT):
-                1. NO ARBITRARY NAMES: NEVER insert random Burmese names unless translating actual names from the source. Use pronouns like "သူ" (He), "သူမ" (She), "သူတို့" (They).
+                1. NO ARBITRARY NAMES: NEVER insert random names unless translating actual names from the source. Use appropriate pronouns (He, She, They / သူ, သူမ, သူတို့).
                 2. VOICEOVER OPTIMIZED: Write for the EAR. The translation must flow naturally when spoken aloud. 
-                3. SPOKEN BURMESE: Use conversational endings (တယ်, မယ်, တဲ့). 
+                3. {spoken_rule}
                 4. DRAMATIC PAUSES: Use ellipses (...) frequently to guide the voice actor's pacing.
                 """
                 
@@ -714,10 +732,10 @@ elif selected_menu == "🦁 Smart Translator":
                     🔴 SRT SUBTITLE PROTOCOL:
                     1. The user has provided an SRT file format. You MUST strictly preserve the SRT structure (Sequence numbers, Timestamps `00:00:00,000 --> 00:00:05,000`, and blank lines).
                     2. ONLY translate the dialogue text. DO NOT alter the timestamps or sequence numbers.
-                    3. Make the Burmese subtitles easy to read, concise, and cinematic. Avoid awkward direct translations.
+                    3. Make the subtitles easy to read, concise, and cinematic. Avoid awkward direct translations.
                     """
                 elif "Sarcastic" in trans_mode:
-                    base_prompt += "\n🔴 TONE: Highly sarcastic, witty, and slightly mocking (ခနဲ့တဲ့တဲ့ သရော်စာ). Use casual Burmese."
+                    base_prompt += f"\n🔴 TONE: Highly sarcastic, witty, and slightly mocking."
                 elif "Soulful" in trans_mode:
                     base_prompt += "\n🔴 TONE: Deeply emotional, heartwarming, and poetic. Focus on human feelings."
                 elif "Mystery" in trans_mode:
@@ -741,17 +759,18 @@ elif selected_menu == "🦁 Smart Translator":
                 {source_text}
                 ---------------------------
                 
-                OUTPUT REQUIREMENT: Return ONLY the final transformed Burmese text. No introductory or concluding remarks.
+                OUTPUT REQUIREMENT: Return ONLY the final transformed text. No introductory or concluding remarks.
                 """
                 
                 try:
+                    import time # Added in case it's missing
                     st.session_state.trans_final_script = generate_content_safe(prompt)
                 except Exception as e:
                     st.error(f"⚠️ Error: {e}")
 
     # 💡 ရလဒ်ပြသခြင်းနှင့် Action ခလုတ်များ
     if st.session_state.trans_final_script:
-        st.success(f"✅ {trans_mode} သို့ အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ!")
+        st.success(f"✅ {target_language.split(' ')[1]} အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီ!")
         st.markdown(st.session_state.trans_final_script)
         
         c1, c2, c3 = st.columns(3)
@@ -761,7 +780,7 @@ elif selected_menu == "🦁 Smart Translator":
                 st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ!")
         with c2:
             if st.button("💾 မှတ်ဉာဏ်တိုက် သိမ်းမည်", key="save_trans_vault", use_container_width=True):
-                save_to_vault(f"Translated: {trans_mode}", st.session_state.trans_final_script, "Smart Translator")
+                save_to_vault(f"Translated: {trans_mode} ({target_language.split(' ')[1]})", st.session_state.trans_final_script, "Smart Translator")
                 st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
         with c3:
             file_ext = "srt" if "SRT" in trans_mode else "txt"
@@ -1027,4 +1046,5 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
 
