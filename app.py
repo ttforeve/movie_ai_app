@@ -301,10 +301,11 @@ if selected_menu == "💡 Idea to Script":
         # 💡 Seamless Loop အတွက် သီးသန့် Prompt Injection (The Magic Sauce)
         if "Seamless Loop" in mm_platform:
             mm_rules += """
-            🔴 CRITICAL FORMAT RULE: SEAMLESS LOOP REEL
-            1. The script MUST end with an incomplete sentence or a cliffhanger phrase (The Outro).
-            2. That exact incomplete sentence MUST flow flawlessly into the very FIRST sentence of the script (The Hook).
-            3. When the viewer watches it on repeat, they should not realize the video has restarted.
+            🔴 CRITICAL FORMAT RULE: SEAMLESS LOOP REEL (STRICTLY 30 SECONDS MAX)
+            1. LENGTH LIMIT: The entire script must be VERY SHORT (around 60 to 80 words max). It must take exactly 20-30 seconds to speak out loud. Do not write long paragraphs!
+            2. The Body section must be ONLY 2 or 3 short, punchy sentences.
+            3. The script MUST end with an incomplete sentence or a cliffhanger phrase (The Outro).
+            4. That exact incomplete sentence MUST flow flawlessly into the very FIRST sentence of the script (The Hook).
             
             EXAMPLE OF A PERFECT LOOP:
             [Outro]: "...အဲ့ဒီတော့ သင်က တကယ်လို့ သိချင်တယ်ဆိုရင်..."
@@ -318,12 +319,10 @@ if selected_menu == "💡 Idea to Script":
             (Explain briefly in Burmese how the Outro connects to the Hook).
             
             📝 **[ဇာတ်ညွှန်း]**
-            [Hook / ဗီဒီယို အစ] - ...
-            [Body / အကြောင်းအရာ] - ... (Keep it fast-paced, max 3 short points)
+            [Hook / ဗီဒီယို အစ] - ... (1 short sentence)
+            [Body / အကြောင်းအရာ] - ... (Max 2-3 short sentences. Extremely concise and engaging).
             [Outro / ဗီဒီယို အဆုံး] - ... (Must be an incomplete thought that connects back to the hook).
             """
-        else:
-            mm_rules += f"PLATFORM: Format the script appropriately for a {mm_platform}.\n"
 
 
         if gen_mm_outline and api_key and mm_topic:
@@ -1074,6 +1073,7 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
 
 
 
