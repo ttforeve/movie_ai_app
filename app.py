@@ -163,6 +163,7 @@ with st.sidebar:
         "👁️ Vision Studio",  
         "🎬 Director's Desk", 
         "📚 Epic Series Maker", 
+        "📖 Magazine Studio",  # 👈 ဒီနေရာလေးမှာ အသစ်ဝင်လာပါပြီ
         "📚 မှတ်ဉာဏ်တိုက်", 
         "🕵️‍♂️ Lore Hunter", 
         "🎨 Visual Director"
@@ -1145,7 +1146,84 @@ elif selected_menu == "📚 Epic Series Maker":
                 if st.button("💾 မှတ်ဉာဏ်တိုက် သိမ်းမည်", key="save_series_vault", use_container_width=True):
                     save_to_vault("Epic Series Output", series_res, "Series Maker")
                     st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
+# --- NEW MENU 10: GLOBAL MAGAZINE STUDIO ---
+elif selected_menu == "📖 Magazine Studio":
+    st.header("📖 Global Magazine Studio")
+    st.caption("ကမ္ဘာကျော် မဂ္ဂဇင်းကြီးများနှင့် ဟောပြောပွဲများ၏ ဟန်အတိုင်း ဆွဲဆောင်မှုရှိသော မြန်မာ Content များ အလိုအလျောက် ဖန်တီးပေးမည်။")
 
+    col_m1, col_m2 = st.columns([1, 1])
+    
+    with col_m1:
+        magazine_style = st.selectbox("📚 ဖန်တီးလိုသော စတိုင် (Style) ကို ရွေးပါ:", [
+            "📖 Reader's Digest (မိသားစု၊ ဘဝခွန်အား နှင့် ဗဟုသုတ)",
+            "🌍 National Geographic (သမိုင်း၊ သဘာဝတရား နှင့် စူးစမ်းလေ့လာမှု)",
+            "💡 TED Talks (အတွေးအခေါ်သစ်၊ စိတ်ပညာ နှင့် ဟောပြောပွဲ)",
+            "🍲 Chicken Soup for the Soul (နှလုံးသားကို ထိရှစေသော ရသများ)"
+        ])
+    
+    with col_m2:
+        if "Reader's Digest" in magazine_style:
+            content_type = st.radio("📑 ကဏ္ဍ ရွေးပါ:", [
+                "💖 Inspiring True Stories (ဘဝခွန်အားပေး တကယ့်ဖြစ်ရပ်မှန်များ)",
+                "🎓 Articles (အသုံးဝင် ဗဟုသုတ ဆောင်းပါးများ)",
+                "📖 Condensed Books (ဝတ္ထုရှည် အနှစ်ချုပ်များ)",
+                "😂 Humor & Jokes (ဟာသ နှင့် ရယ်စရာများ)"
+            ])
+        elif "National Geographic" in magazine_style:
+            content_type = st.radio("📑 ကဏ္ဍ ရွေးပါ:", [
+                "🏛️ Unsolved Ancient Mysteries (ဖြေရှင်းမရသေးသော ရှေးဟောင်းလျှို့ဝှက်ချက်များ)",
+                "🦁 Extreme Wildlife Survival (တိရစ္ဆာန်တို့၏ ကြမ်းတမ်းသော ရှင်သန်မှု)",
+                "🌊 Deep Ocean / Space (နက်ရှိုင်းသော သမုဒ္ဒရာ သို့မဟုတ် အာကာသ အကြောင်း)"
+            ])
+        elif "TED Talks" in magazine_style:
+            content_type = st.radio("📑 ကဏ္ဍ ရွေးပါ:", [
+                "🧠 Psychological Deep Dive (စိတ်ပညာ ခွဲခြမ်းစိတ်ဖြာချက်)",
+                "🚀 Future & Humanity (အနာဂတ်နည်းပညာ နှင့် လူသားမျိုးနွယ်)",
+                "🎤 Motivational Speech (စိတ်ခွန်အားပေး ဟောပြောချက် ဇာတ်ညွှန်း)"
+            ])
+        elif "Chicken Soup" in magazine_style:
+            content_type = st.radio("📑 ကဏ္ဍ ရွေးပါ:", [
+                "👨‍👩‍👧 Tear-jerking Family Stories (မျက်ရည်ကျစေမည့် မိသားစု မေတ္တာဖွဲ့)",
+                "🤝 Kindness of Strangers (သူစိမ်းများထံမှ ရရှိသော ကြင်နာမှုများ)",
+                "💪 Overcoming Grief (အဆိုးဝါးဆုံး အခြေအနေမှ ပြန်လည်ထူမတ်လာခြင်း)"
+            ])
+
+    st.write("---")
+    mag_topic = st.text_area("📝 အကြောင်းအရာ (Topic) ရိုက်ထည့်ပါ:", placeholder="ဥပမာ - မုန်တိုင်းထဲ ပိတ်မိသွားတဲ့ သင်္ဘောသားအကြောင်း၊ စိတ်ကျရောဂါကို ကျော်လွှားခဲ့သူအကြောင်း (သို့မဟုတ် အလွတ်ထားလျှင် AI မှ Auto စဉ်းစားပေးပါမည်)...")
+
+    if st.button("✨ အမိုက်စား Content ဖန်တီးရန်", type="primary", use_container_width=True) and api_key:
+        with st.spinner(f"{magazine_style} စတိုင်ဖြင့် ရေးသားနေပါသည်... ⏳"):
+            topic_instruction = f"about '{mag_topic}'" if mag_topic.strip() else "by coming up with a brilliant, highly engaging original topic on your own"
+            
+            mag_prompt = f"""
+            Act as an elite Master Copywriter and Editor for a globally renowned publication.
+            Your task is to write a highly captivating piece {topic_instruction}.
+            
+            PUBLICATION STYLE: {magazine_style}
+            SPECIFIC CATEGORY: {content_type}
+            
+            CRITICAL RULES:
+            1. Write the ENTIRE output in natural, highly engaging BURMESE language.
+            2. Match the exact emotional tone of the chosen publication (e.g., Reader's Digest = warm and concise; NatGeo = epic and descriptive; TED = thought-provoking and conversational; Chicken Soup = deeply emotional and touching).
+            3. Write for the EAR if it is a story or speech (use conversational Burmese: တယ်, မယ်, တဲ့).
+            4. Start with a massive, attention-grabbing HOOK.
+            5. Structure with clear paragraphs and use dramatic ellipses (...) where necessary.
+            """
+            
+            mag_res = generate_content_safe(mag_prompt)
+            st.success("✅ အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ!")
+            st.markdown(mag_res)
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 6)", key="send_mag_tts", use_container_width=True):
+                    st.session_state.tts_text_area = mag_res
+                    st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ!")
+            with c2:
+                if st.button("💾 မှတ်ဉာဏ်တိုက် သိမ်းမည်", key="save_mag_vault", use_container_width=True):
+                    save_to_vault(f"Magazine: {content_type}", mag_res, "Magazine Studio")
+                    st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
+                    
 # --- MENU 10, 11, 12 ---
 elif selected_menu == "📚 မှတ်ဉာဏ်တိုက်":
     st.header("📚 Memory Vault")
@@ -1168,5 +1246,6 @@ elif selected_menu == "🎨 Visual Director":
     if st.button("🔥 Generate SEO Pack", type="primary") and api_key and seo_text:
         with st.spinner("ရေးသားနေပါသည်..."):
             st.markdown(generate_content_safe(f"Create a highly engaging Burmese Caption, Title, and 5 hashtags for TikTok/FB based on: {seo_text}"))
+
 
 
