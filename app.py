@@ -92,20 +92,30 @@ def generate_content_safe(prompt, media_file=None):
             continue 
     return f"⚠️ Error: All models failed. Check API Key.\nLogs: {errors[0]}"
 
-# 💡 NEW: Reddit Auto Fetcher
+# 💡 NEW: Reddit Auto Fetcher (Bypass Security Block)
 def fetch_reddit_story(subreddit):
     try:
         url = f"https://www.reddit.com/{subreddit}/top.json?limit=1&t=day"
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-        response = requests.get(url, headers=headers)
+        
+        # 💡 Reddit ကို Bot မဟုတ်ဘူးလို့ ယုံသွားအောင် Unique ဖြစ်တဲ့ User-Agent ကို ပြောင်းသုံးပါမယ်
+        headers = {
+            'User-Agent': 'UniversalStudioAIApp:v1.0.0 (by /u/MyanmarAIStudio)'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        
         if response.status_code == 200:
             data = response.json()
             post = data['data']['children'][0]['data']
-            return f"Title: {post['title']}\n\nContent:\n{post['selftext']}"
+            # တချို့ Post တွေက ပုံချည်းပဲဖြစ်နေရင် စာမပါတာမျိုး ရှိတတ်လို့ .get() သုံးထားပါတယ်
+            return f"Title: {post.get('title', 'Unknown')}\n\nContent:\n{post.get('selftext', 'No text content found in this post.')}"
+        elif response.status_code == 429:
+            return "Error: Reddit မှ ခဏတာ ပိတ်ထားပါသည် (Too Many Requests)။ ခဏစောင့်ပြီးမှ ထပ်စမ်းကြည့်ပါ။"
         else:
-            return "Error: Could not fetch from Reddit. It might be blocked."
+            return f"Error: Could not fetch from Reddit. Status Code: {response.status_code}"
+            
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error connecting to Reddit: {e}"
 
 # 💡 NEW: Wikipedia Auto Fetcher
 def fetch_wikipedia_summary(query):
@@ -501,3 +511,4 @@ elif selected_menu == "🎨 Visual Director":
     if st.button("🔥 Generate SEO Pack", type="primary") and api_key and seo_text:
         with st.spinner("ရေးသားနေပါသည်..."):
             st.markdown(generate_content_safe(f"Create a highly engaging Burmese Caption, Title, and 5 hashtags for TikTok/FB based on: {seo_text}"))
+
