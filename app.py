@@ -1008,12 +1008,17 @@ elif selected_menu == "👁️ Vision Studio":
             with c3:
                 st.download_button("📥 ဖိုင် ဒေါင်းလုဒ်ဆွဲရန်", st.session_state.vision_final_script, file_name="vision_output.txt", use_container_width=True)
 
-# --- NEW MENU 8: DIRECTOR'S DESK (FIXED HALLUCINATION) ---
+# --- NEW MENU 8: DIRECTOR'S DESK (FIXED HALLUCINATION & ADDED COPY BUTTON) ---
 elif selected_menu == "🎬 Director's Desk":
     st.header("🎬 Director's Desk (Storyboard Generator)")
     st.caption("ဇာတ်ညွှန်းကိုထည့်ပါ။ ဗီဒီယိုရိုက်ကူးတည်းဖြတ်ရန် လွယ်ကူစေမည့် ဇယားကွက် (Storyboard) အဖြစ် အလိုအလျောက် ခွဲထုတ်ပေးပါမည်။")
     
     dir_script = st.text_area("📝 မြန်မာ ဇာတ်ညွှန်းကို ဤနေရာတွင် Paste ချပါ:", height=200)
+    
+    # 💡 Copy ကူးချိန် ဖန်တီးထားတာတွေ ပျောက်မသွားအောင် Session State ဖြင့် မှတ်ထားမည်
+    if 'dir_board_res' not in st.session_state: 
+        st.session_state.dir_board_res = ""
+
     if st.button("🎞️ ဇယားကွက်အဖြစ် ပြောင်းလဲရန်", type="primary") and api_key and dir_script:
         with st.spinner("Director's Storyboard အဖြစ် ခွဲထုတ်နေပါသည်... ⏳"):
             # 💡 တင်းကျပ်သော Prompt (မျဉ်းရှည်များ မထွက်စေရန်)
@@ -1034,9 +1039,28 @@ elif selected_menu == "🎬 Director's Desk":
             SCRIPT TO CONVERT:
             {dir_script}
             """
-            res = generate_content_safe(dir_prompt)
-            st.success("✅ Storyboard ဇယားကွက် အသင့်ဖြစ်ပါပြီ!")
-            st.markdown(res)
+            st.session_state.dir_board_res = generate_content_safe(dir_prompt)
+            
+    # 💡 ရလဒ်ပြသခြင်း၊ Copy Button နှင့် Download Button ထည့်ခြင်း
+    if st.session_state.dir_board_res:
+        st.success("✅ Storyboard ဇယားကွက် အသင့်ဖြစ်ပါပြီ!")
+        
+        # အလှကြည့်ရန် ဇယားကွက်
+        st.markdown(st.session_state.dir_board_res)
+        
+        st.write("---")
+        st.write("📋 **Copy ကူးရန် (ဘောက်စ်၏ ညာဘက်အပေါ်ထောင့်ရှိ Copy Icon လေးကို နှိပ်ပါ)**")
+        
+        # Copy ကူးရန် Code Box 
+        st.code(st.session_state.dir_board_res, language="markdown")
+        
+        # Download ဆွဲရန် ခလုတ်
+        st.download_button(
+            label="📥 ဇယားကွက်ကို ဖိုင်အဖြစ် ဒေါင်းလုဒ်ဆွဲရန် (.txt)",
+            data=st.session_state.dir_board_res,
+            file_name=f"storyboard_{int(time.time())}.txt",
+            use_container_width=True
+        )
 
 # --- NEW MENU 9: EPIC SERIES MAKER & WEB HUNTER (WIKI + PDF/TEXT ONLY) ---
 elif selected_menu == "📚 Epic Series Maker":
@@ -1246,6 +1270,7 @@ elif selected_menu == "🎨 Visual Director":
     if st.button("🔥 Generate SEO Pack", type="primary") and api_key and seo_text:
         with st.spinner("ရေးသားနေပါသည်..."):
             st.markdown(generate_content_safe(f"Create a highly engaging Burmese Caption, Title, and 5 hashtags for TikTok/FB based on: {seo_text}"))
+
 
 
 
