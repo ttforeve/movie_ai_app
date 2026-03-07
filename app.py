@@ -944,139 +944,67 @@ elif selected_menu == "🎙️ Audio Studio":
             
 # --- MENU 7: VISION STUDIO ---
 elif selected_menu == "👁️ Vision Studio":
-
     st.header("👁️ Vision Studio (Image to Script)")
-
     st.caption("ပုံတင်ပါ၊ AI မှ ပုံထဲကစာများကို ဖတ်ပေးခြင်း၊ ပုံကိုကြည့်၍ Tone မျိုးစုံဖြင့် ဇာတ်လမ်းဖန်တီးပေးခြင်းများ လုပ်ဆောင်ပေးပါမည်။")
-
-
-
     image_file = st.file_uploader("📸 ဓာတ်ပုံ သို့မဟုတ် Screenshot တင်ရန် (JPG, PNG)", type=["jpg", "png", "jpeg"])
 
-
-
     if image_file:
-
         img = Image.open(image_file)
-
         st.image(img, caption="Uploaded Image", use_container_width=True)
-
-
-
         st.write("---")
-
         vision_task = st.selectbox("ဘာလုပ်ချင်ပါသလဲ?", [
-
             "📝 ပုံထဲက စာသားများကို အတိအကျ ကူးယူရန် (OCR Engine)",
-
             "🎬 ပုံကိုကြည့်ပြီး ရုပ်ရှင်အနှစ်ချုပ် စတိုင်ရေးရန် (Cinematic Recap)",
-
             "💖 ပုံကိုကြည့်ပြီး ရသစာတို ရေးရန် (Soulful Story)",
-
             "😂 ပုံကိုကြည့်ပြီး ခနဲ့တဲ့တဲ့ သရော်စာ ရေးရန် (Sarcastic Roast)",
-
             "🕵️‍♂️ ပုံကိုကြည့်ပြီး လျှို့ဝှက်ဆန်းကြယ် ဇာတ်လမ်းရေးရန် (Mystery/Horror)",
-
             "🎙️ ပုံကိုကြည့်ပြီး ပရော်ဖက်ရှင်နယ် ဇာတ်ကြောင်းပြောရေးရန် (Narration)",
-
             "📱 ပုံကိုကြည့်ပြီး Social Media Caption & SEO ရေးရန်"
-
         ])
 
-
-
         vision_custom = st.text_input("💡 အထူးတောင်းဆိုချက် (Optional):", placeholder="ဥပမာ - စာပိုဒ်တိုတိုပဲ ရေးပေးပါ၊ မြန်မာလိုချည်းပဲ ရေးပေးပါ...")
-
-
-
         if 'vision_final_script' not in st.session_state: st.session_state.vision_final_script = ""
-
-
-
         if st.button("🚀 Start Vision AI Analysis", type="primary", use_container_width=True):
-
             if api_key:
-
                 with st.spinner("AI မှ ပုံကို မျက်စိဖြင့် သေချာစစ်ဆေးနေပါသည်... ⏳"):
-
                     # 💡 OCR လား၊ ဇာတ်လမ်းရေးတာလား ခွဲခြားခြင်း
-
                     if "OCR Engine" in vision_task:
-
                         vision_prompt = f"""
-
                         CRITICAL INSTRUCTION: Act as an expert OCR Engine. 
-
                         TASK: Extract ALL text exactly as it appears in this image. 
-
                         Maintain the original formatting and language (If Burmese, output perfectly spelled Burmese text). 
-
                         DO NOT explain the image, JUST extract the text.
-
                         USER REQUEST: {vision_custom}
-
                         """
-
                     else:
-
                         vision_prompt = f"""
-
                         CRITICAL INSTRUCTION: You are a Master Visual Storyteller. 
-
                         Look at the provided image meticulously (facial expressions, environment, mood, lighting, objects).
-
                         TASK: {vision_task}. Write entirely in engaging, natural BURMESE language.
-
                         SPOKEN BURMESE: Use conversational endings (တယ်, မယ်, တဲ့).
-
                         USER REQUEST: {vision_custom}
-
                         """
-
-
-
                     try:
-
                         # 💡 Image ကို media_file အဖြစ် AI ဆီ လှမ်းပို့ခြင်း
-
                         st.session_state.vision_final_script = generate_content_safe(vision_prompt, media_file=img)
-
                     except Exception as e:
-
                         st.error(f"⚠️ Error: ပုံကို ဖတ်၍ မရပါ။ ({e})")
 
-
-
         # 💡 ရလဒ်ပြသခြင်း နှင့် Action ခလုတ်များ
-
         if st.session_state.vision_final_script:
-
             st.success(f"✅ အောင်မြင်စွာ ဖန်တီးပြီးပါပြီ!")
-
             st.markdown(st.session_state.vision_final_script)
 
-
-
             c1, c2, c3 = st.columns(3)
-
             with c1:
-
                 if st.button("📲 AI TTS သို့ ပို့ရန် (Tab 6)", key="send_vision_tts", use_container_width=True):
-
                     st.session_state.tts_text_area = st.session_state.vision_final_script
-
                     st.success("✅ Tab 6 သို့ ရောက်သွားပါပြီ!")
-
             with c2:
-
                 if st.button("💾 မှတ်ဉာဏ်တိုက် သိမ်းမည်", key="save_vision_vault", use_container_width=True):
-
                     save_to_vault("Vision Analysis Output", st.session_state.vision_final_script, "Vision Studio")
-
                     st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
-
             with c3:
-
                 st.download_button("📥 ဖိုင် ဒေါင်းလုဒ်ဆွဲရန်", st.session_state.vision_final_script, file_name="vision_output.txt", use_container_width=True)
 
 # --- NEW MENU 8: DIRECTOR'S DESK (FIXED HALLUCINATION) ---
@@ -1109,38 +1037,58 @@ elif selected_menu == "🎬 Director's Desk":
             st.success("✅ Storyboard ဇယားကွက် အသင့်ဖြစ်ပါပြီ!")
             st.markdown(res)
 
-# --- NEW MENU 9: EPIC SERIES MAKER (CLEANED & EXPANDED) ---
+# --- NEW MENU 9: EPIC SERIES MAKER & WEB HUNTER (WIKI + PDF/TEXT ONLY) ---
 elif selected_menu == "📚 Epic Series Maker":
-    st.header("📚 Epic Series Maker Studio")
-    st.caption("စာအုပ် (PDF/TXT) သို့မဟုတ် စာသားအရှည်ကြီးများကို ထည့်သွင်းပြီး အမိုက်စား မြန်မာ ဇာတ်လမ်းတွဲများအဖြစ် အလိုအလျောက် ပြောင်းလဲပေးမည်။")
+    st.header("📚 Epic Series Maker & Web Hunter")
+    st.caption("Wikipedia မှ အချက်အလက်များ သို့မဟုတ် သင်၏ စာသား/ဖိုင်များကို အမိုက်စား မြန်မာ ဇာတ်လမ်းတွဲများအဖြစ် အလိုအလျောက် ပြောင်းလဲပေးမည်။")
+
+    # 💡 Reddit ကိုဖြုတ်ပြီး Wiki နှင့် PDF/Text နှစိခုသာ ချန်ထားပါသည်
+    source_type = st.radio("🔍 ဇာတ်လမ်း အရင်းအမြစ်ကို ရွေးပါ:", [
+        "🔍 Wikipedia Auto-Hunter (သမိုင်း/သိပ္ပံ အကြောင်းအရာများရှာရန်)",
+        "📄 PDF, TXT ဖိုင် (သို့မဟုတ်) စာသား ကိုယ်တိုင်ထည့်မည်"
+    ])
 
     raw_text = ""
 
-    st.info("💡 PDF, TXT ဖိုင် တင်နိုင်သလို၊ အောက်ပါ Text Box တွင်လည်း စာများကို တိုက်ရိုက် Paste ချနိုင်ပါသည်။")
-    
-    # 1. ဖိုင်တင်မည့်နေရာ (PDF နှင့် TXT ရသည်)
-    uploaded_file = st.file_uploader("📄 PDF သို့မဟုတ် TXT ဖိုင် တင်ရန်:", type=["pdf", "txt"])
-    
-    st.write("**— (သို့မဟုတ်) —**")
-    
-    # 2. စာသားကိုယ်တိုင် ထည့်မည့်နေရာ
-    manual_text = st.text_area("📝 စာသားများကို ဤနေရာတွင် တိုက်ရိုက် Paste ချပါ:", height=200, placeholder="အင်္ဂလိပ် သို့မဟုတ် မြန်မာ စာပိုဒ် အရှည်ကြီးများကို ဤနေရာတွင် ကူးထည့်ပါ...")
-    
-    if st.button("📂 ဇာတ်လမ်းတွဲ ဖန်တီးရန် အချက်အလက်ယူမည်", type="primary"):
-        with st.spinner("အချက်အလက်များကို ဖတ်ရှုနေပါသည်... ⏳"):
-            if uploaded_file:
-                if uploaded_file.name.endswith(".pdf"):
-                    raw_text = extract_text_from_pdf(uploaded_file)
-                elif uploaded_file.name.endswith(".txt"):
-                    raw_text = uploaded_file.getvalue().decode("utf-8")
-            elif manual_text.strip():
-                raw_text = manual_text
-            
-            if raw_text and "Error" not in raw_text:
-                st.success("✅ အချက်အလက် ဖတ်ရှုခြင်း အောင်မြင်ပါသည်! အောက်တွင် ဇာတ်လမ်းတွဲ ခွဲထုတ်နိုင်ပါပြီ။")
-                st.session_state.temp_raw_text = raw_text
-            else: 
-                st.error("⚠️ ကျေးဇူးပြု၍ ဖိုင်တစ်ခုခု တင်ပါ၊ သို့မဟုတ် စာသားထည့်ပါ။ ဖတ်၍မရပါက စာသားကို တိုက်ရိုက်သာ Paste ချပေးပါ။")
+    if "Wikipedia" in source_type:
+        st.info("ရှာဖွေလိုသော အကြောင်းအရာကို ရိုက်ထည့်ပါ။ အင်္ဂလိပ် Wikipedia မှ အချက်အလက်များကို Auto ဆွဲယူပါမည်။")
+        wiki_query = st.text_input("ရှာဖွေလိုသော ခေါင်းစဉ် (English လို ရိုက်ပါ - ဥပမာ: Bermuda Triangle, Albert Einstein):")
+        
+        if st.button("🔍 Wikipedia မှ အချက်အလက် ဆွဲယူရန်") and wiki_query:
+            with st.spinner(f"Wikipedia တွင် '{wiki_query}' ကို ရှာဖွေနေပါသည်... ⏳"):
+                raw_text = fetch_wikipedia_summary(wiki_query)
+                if "Error" not in raw_text:
+                    st.success("✅ Wikipedia မှ အချက်အလက် ဆွဲယူရရှိပါပြီ! အောက်တွင် ဇာတ်လမ်းတွဲ ခွဲထုတ်နိုင်ပါပြီ။")
+                    st.session_state.temp_raw_text = raw_text
+                else: 
+                    st.error(raw_text)
+
+    elif "PDF" in source_type:
+        st.info("စာအုပ်၊ ဆောင်းပါး သို့မဟုတ် ဇာတ်လမ်းရှည်များကို တင်ပါ။ (PDF သို့မဟုတ် TXT ဖိုင်) သို့မဟုတ် အောက်တွင် စာသားကို တိုက်ရိုက် Paste ချပါ။")
+        
+        # 1. ဖိုင်တင်မည့်နေရာ (PDF နှင့် TXT ရသည်)
+        uploaded_file = st.file_uploader("📄 PDF သို့မဟုတ် TXT ဖိုင် တင်ရန်:", type=["pdf", "txt"])
+        
+        st.write("**— (သို့မဟုတ်) —**")
+        
+        # 2. စာသားကိုယ်တိုင် ထည့်မည့်နေရာ
+        manual_text = st.text_area("📝 စာသားများကို ဤနေရာတွင် တိုက်ရိုက် Paste ချပါ:", height=200, placeholder="အင်္ဂလိပ် သို့မဟုတ် မြန်မာ စာပိုဒ် အရှည်ကြီးများကို ဤနေရာတွင် ကူးထည့်ပါ...")
+        
+        if st.button("📂 ဇာတ်လမ်းတွဲ ဖန်တီးရန် အချက်အလက်ယူမည်", type="primary"):
+            with st.spinner("အချက်အလက်များကို ဖတ်ရှုနေပါသည်... ⏳"):
+                if uploaded_file:
+                    if uploaded_file.name.endswith(".pdf"):
+                        raw_text = extract_text_from_pdf(uploaded_file)
+                    elif uploaded_file.name.endswith(".txt"):
+                        raw_text = uploaded_file.getvalue().decode("utf-8")
+                elif manual_text.strip():
+                    raw_text = manual_text
+                
+                if raw_text and "Error" not in raw_text:
+                    st.success("✅ အချက်အလက် ဖတ်ရှုခြင်း အောင်မြင်ပါသည်! အောက်တွင် ဇာတ်လမ်းတွဲ ခွဲထုတ်နိုင်ပါပြီ။")
+                    st.session_state.temp_raw_text = raw_text
+                else: 
+                    st.error(raw_text if raw_text else "⚠️ ကျေးဇူးပြု၍ ဖိုင်တစ်ခုခု တင်ပါ၊ သို့မဟုတ် စာသားထည့်ပါ။")
 
     # 💡 ဇာတ်လမ်းတွဲ ခွဲထုတ်မည့် အပိုင်း
     if st.session_state.get("temp_raw_text"):
@@ -1148,7 +1096,7 @@ elif selected_menu == "📚 Epic Series Maker":
         st.subheader("🎬 ဇာတ်လမ်းတွဲ (Series) ဖန်တီးရန်")
         parts = st.slider("အပိုင်း (Episodes) ဘယ်နှစ်ပိုင်း ခွဲထုတ်ချင်ပါသလဲ?", 2, 15, 3)
         
-        # 💡 တောင်းဆိုထားသော ရွေးစရာအသစ်များ အများကြီး ထပ်တိုးပေးထားပါသည် (၁၁ မျိုး)
+        # 💡 ရွေးချယ်စရာ Tone (၁၁) မျိုး အပြည့်အစုံ
         series_tone = st.selectbox("🎭 ဇာတ်လမ်းတွဲ အမျိုးအစား (Tone) ကို ရွေးပါ:", [
             "👻 သဲထိတ်ရင်ဖို နှင့် လျှို့ဝှက်ဆန်းကြယ် (Mystery / Horror)",
             "🔪 မှုခင်း နှင့် စုံထောက် (True Crime / Detective)",
@@ -1220,4 +1168,5 @@ elif selected_menu == "🎨 Visual Director":
     if st.button("🔥 Generate SEO Pack", type="primary") and api_key and seo_text:
         with st.spinner("ရေးသားနေပါသည်..."):
             st.markdown(generate_content_safe(f"Create a highly engaging Burmese Caption, Title, and 5 hashtags for TikTok/FB based on: {seo_text}"))
+
 
