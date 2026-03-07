@@ -1,6 +1,9 @@
 streamlit
 google-generativeai
+edge-tts
 youtube-transcript-api
 yt-dlp
-edge-tts
+Pillow
+requests
+PyPDF2
 streamlit-audiorec
