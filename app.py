@@ -123,17 +123,17 @@ with st.sidebar:
     st.write("---")
     st.header("🧭 Menu")
     selected_menu = st.radio("သွားလိုသော နေရာကို ရွေးပါ:", [
-        "💡 Idea to Script", 
-        "📂 Video to Script", 
-        "🎵 Audio to Script", 
-        "🔴 YouTube Master", 
-        "🦁 Smart Translator", 
-        "🎙️ Audio Studio",
-        "👁️ Vision Studio",  # 👈 ဒီနေရာလေးမှာ အသစ်ဝင်လာပါပြီ
-        "📚 မှတ်ဉာဏ်တိုက်", 
-        "🕵️‍♂️ Lore Hunter", 
-        "🎨 Visual Director"
-    ])
+        "💡 Idea to Script", 
+        "📂 Video to Script", 
+        "🎵 Audio to Script", 
+        "🔴 YouTube Master", 
+        "🦁 Smart Translator", 
+        "🎙️ Audio Studio",
+        "👁️ Vision Studio",  
+        "📚 မှတ်ဉာဏ်တိုက်", 
+        "🕵️‍♂️ Lore Hunter", 
+        "🎨 Visual Director"
+    ])
 
 # ==========================================
 # 🎬 4. MAIN INTERFACES
@@ -979,6 +979,7 @@ elif selected_menu == "👁️ Vision Studio":
                     st.success("✅ Tab 7 တွင် သိမ်းဆည်းပြီးပါပြီ!")
             with c3:
                 st.download_button("📥 ဖိုင် ဒေါင်းလုဒ်ဆွဲရန်", st.session_state.vision_final_script, file_name="vision_output.txt", use_container_width=True)
+
 # --- MENU 7, 8, 9 ---
 elif selected_menu == "📚 မှတ်ဉာဏ်တိုက်":
     st.header("📚 Memory Vault")
@@ -1144,9 +1145,3 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
-
-
-
-
-
-
