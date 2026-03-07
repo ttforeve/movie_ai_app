@@ -92,44 +92,41 @@ def generate_content_safe(prompt, media_file=None):
             continue 
     return f"⚠️ Error: All models failed. Check API Key.\nLogs: {errors[0]}"
 
-# 💡 NEW: Reddit Auto Fetcher (Bypass Security Block)
+# 💡 Reddit Auto Fetcher (FIXED User-Agent to bypass 403)
 def fetch_reddit_story(subreddit):
     try:
         url = f"https://www.reddit.com/{subreddit}/top.json?limit=1&t=day"
-        
-        # 💡 Reddit ကို Bot မဟုတ်ဘူးလို့ ယုံသွားအောင် Unique ဖြစ်တဲ့ User-Agent ကို ပြောင်းသုံးပါမယ်
         headers = {
-            'User-Agent': 'UniversalStudioAIApp:v1.0.0 (by /u/MyanmarAIStudio)'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
         }
-        
         response = requests.get(url, headers=headers, timeout=10)
-        
         if response.status_code == 200:
             data = response.json()
             post = data['data']['children'][0]['data']
-            # တချို့ Post တွေက ပုံချည်းပဲဖြစ်နေရင် စာမပါတာမျိုး ရှိတတ်လို့ .get() သုံးထားပါတယ်
-            return f"Title: {post.get('title', 'Unknown')}\n\nContent:\n{post.get('selftext', 'No text content found in this post.')}"
-        elif response.status_code == 429:
-            return "Error: Reddit မှ ခဏတာ ပိတ်ထားပါသည် (Too Many Requests)။ ခဏစောင့်ပြီးမှ ထပ်စမ်းကြည့်ပါ။"
+            return f"Title: {post.get('title', 'Unknown')}\n\nContent:\n{post.get('selftext', 'No text content found.')}"
         else:
-            return f"Error: Could not fetch from Reddit. Status Code: {response.status_code}"
-            
+            return f"Error: Reddit လုံခြုံရေးစနစ်မှ ပိတ်ထားပါသည် (Status: {response.status_code})။ Website သို့ တိုက်ရိုက်သွား၍ Copy ကူးပြီး အောက်ပါ Text Box တွင် ထည့်ပါ။"
     except Exception as e:
         return f"Error connecting to Reddit: {e}"
 
-# 💡 NEW: Wikipedia Auto Fetcher
+# 💡 Wikipedia Auto Fetcher (FIXED API Format & User-Agent)
 def fetch_wikipedia_summary(query):
     try:
         url = f"https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&titles={query}&format=json&explaintext=1"
-        response = requests.get(url).json()
-        pages = response['query']['pages']
-        for page_id in pages:
-            if page_id == "-1": return "Error: No Wikipedia page found for this topic."
-            return pages[page_id].get('extract', 'No content found.')
+        headers = {'User-Agent': 'UniversalStudioAI/1.0 (contact@example.com)'}
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            pages = data['query']['pages']
+            for page_id in pages:
+                if page_id == "-1": return "Error: ဤအကြောင်းအရာအတွက် Wikipedia တွင် မတွေ့ရှိပါ။"
+                return pages[page_id].get('extract', 'စာသား ရှာမတွေ့ပါ။')
+        else:
+            return "Error: Wikipedia ဆာဗာမှ ပြန်လည်တုံ့ပြန်မှု မရှိပါ။"
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error fetching Wikipedia: {e}"
 
-# 💡 NEW: PDF Extractor
+# 💡 PDF Extractor
 def extract_text_from_pdf(pdf_file):
     try:
         reader = PyPDF2.PdfReader(pdf_file)
@@ -164,8 +161,8 @@ with st.sidebar:
         "🦁 Smart Translator", 
         "🎙️ Audio Studio",
         "👁️ Vision Studio",  
-        "🎬 Director's Desk", # NEW
-        "📚 Epic Series Maker", # NEW
+        "🎬 Director's Desk", 
+        "📚 Epic Series Maker", 
         "📚 မှတ်ဉာဏ်တိုက်", 
         "🕵️‍♂️ Lore Hunter", 
         "🎨 Visual Director"
@@ -378,7 +375,7 @@ elif selected_menu == "👁️ Vision Studio":
                 st.success("✅ အောင်မြင်ပါသည်!")
                 st.markdown(res)
 
-# --- NEW MENU 8: DIRECTOR'S DESK ---
+# --- NEW MENU 8: DIRECTOR'S DESK (FIXED HALLUCINATION) ---
 elif selected_menu == "🎬 Director's Desk":
     st.header("🎬 Director's Desk (Storyboard Generator)")
     st.caption("ဇာတ်ညွှန်းကိုထည့်ပါ။ ဗီဒီယိုရိုက်ကူးတည်းဖြတ်ရန် လွယ်ကူစေမည့် ဇယားကွက် (Storyboard) အဖြစ် အလိုအလျောက် ခွဲထုတ်ပေးပါမည်။")
@@ -386,12 +383,20 @@ elif selected_menu == "🎬 Director's Desk":
     dir_script = st.text_area("📝 မြန်မာ ဇာတ်ညွှန်းကို ဤနေရာတွင် Paste ချပါ:", height=200)
     if st.button("🎞️ ဇယားကွက်အဖြစ် ပြောင်းလဲရန်", type="primary") and api_key and dir_script:
         with st.spinner("Director's Storyboard အဖြစ် ခွဲထုတ်နေပါသည်... ⏳"):
+            # 💡 တင်းကျပ်သော Prompt (မျဉ်းရှည်များ မထွက်စေရန်)
             dir_prompt = f"""
-            Act as a Professional Film Director. Convert the following script into a highly detailed Storyboard Table for a video editor/creator.
-            The response MUST be a Markdown Table with these 4 columns:
-            | Scene # | Visual / Action (မျက်နှာပြင် မြင်ကွင်း) | Voiceover (ပြောမည့်အသံ) | BGM / SFX (နောက်ခံတေးဂီတ နှင့် အသံထက်မြက်) |
+            Act as a Professional Film Director. Convert the following script into a highly detailed Storyboard Table for a video editor.
+            The response MUST be a STRICT Markdown Table with exactly 4 columns.
+            Do NOT use excessive hyphens (---). Keep the markdown clean and simple. Use exactly this table structure format:
             
-            Write the contents of the table entirely in BURMESE. Make the Visual descriptions highly descriptive and cinematic.
+            | Scene | မျက်နှာပြင် မြင်ကွင်း (Visual) | ပြောမည့်အသံ (Voiceover) | နောက်ခံအသံ (BGM / SFX) |
+            |---|---|---|---|
+            | 1 | [Describe visuals here] | [Voiceover text here] | [Music/SFX here] |
+            
+            CRITICAL RULES:
+            1. Write entirely in engaging BURMESE.
+            2. DO NOT generate lines longer than 200 characters.
+            3. DO NOT print thousands of hyphens.
             
             SCRIPT TO CONVERT:
             {dir_script}
@@ -400,24 +405,23 @@ elif selected_menu == "🎬 Director's Desk":
             st.success("✅ Storyboard ဇယားကွက် အသင့်ဖြစ်ပါပြီ!")
             st.markdown(res)
 
-# --- NEW MENU 9: EPIC SERIES MAKER & WEB HUNTER ---
+# --- NEW MENU 9: EPIC SERIES MAKER & WEB HUNTER (FIXED UPLOAD & TEXT BOX) ---
 elif selected_menu == "📚 Epic Series Maker":
     st.header("📚 Epic Series Maker & Web Hunter")
-    st.caption("အင်တာနက်ပေါ်မှ ဇာတ်လမ်းရှည်များ (သို့) PDF ဖိုင်များကို အမိုက်စား မြန်မာ ဇာတ်လမ်းတွဲများအဖြစ် အလိုအလျောက် ပြောင်းလဲပေးမည့် စနစ်ကြီး!")
+    st.caption("အင်တာနက်ပေါ်မှ ဇာတ်လမ်းများ သို့မဟုတ် သင်၏ စာသား/ဖိုင်များကို အမိုက်စား မြန်မာ ဇာတ်လမ်းတွဲများအဖြစ် အလိုအလျောက် ပြောင်းလဲပေးမည်။")
 
     source_type = st.radio("🔍 ဇာတ်လမ်း အရင်းအမြစ်ကို ရွေးပါ:", [
         "🌐 Reddit Auto-Hunter (သဲထိတ်ရင်ဖို/မှုခင်း ဇာတ်လမ်းများ)",
         "🔍 Wikipedia Auto-Hunter (သမိုင်း/သိပ္ပံ အကြောင်းအရာများ)",
-        "📄 PDF / Text ဖိုင် ကိုယ်တိုင်တင်မည် (PDF Upload)"
+        "📄 PDF, TXT ဖိုင် (သို့မဟုတ်) စာသား ကိုယ်တိုင်ထည့်မည်"
     ])
 
     raw_text = ""
-    series_title = ""
 
     if "Reddit" in source_type:
-        st.info("Reddit မှ ယနေ့အတွက် လူကြိုက်အများဆုံး ဇာတ်လမ်းတစ်ပုဒ်ကို Auto ဆွဲယူပါမည်။ (Website သို့ သွားစရာမလိုပါ)")
+        st.info("Reddit မှ ယနေ့အတွက် လူကြိုက်အများဆုံး ဇာတ်လမ်းတစ်ပုဒ်ကို Auto ဆွဲယူပါမည်။")
         sub_reddit = st.selectbox("Subreddit ရွေးပါ:", ["r/nosleep (သဲထိတ်ရင်ဖို)", "r/TrueCrime (မှုခင်း)", "r/GlitchInTheMatrix (ထူးဆန်းသောဖြစ်ရပ်များ)"])
-        actual_sub = sub_reddit.split(" ")[0] # Extract r/nosleep
+        actual_sub = sub_reddit.split(" ")[0]
         if st.button("🔥 Reddit မှ ဇာတ်လမ်း ဆွဲယူရန်"):
             with st.spinner(f"{actual_sub} မှ ဆွဲယူနေပါသည်... ⏳"):
                 raw_text = fetch_reddit_story(actual_sub)
@@ -437,16 +441,31 @@ elif selected_menu == "📚 Epic Series Maker":
                     st.session_state.temp_raw_text = raw_text
                 else: st.error(raw_text)
 
+    # 💡 ဤနေရာတွင် PDF, TXT ဖိုင်တင်ခြင်း နှင့် စာသား Paste ချခြင်းများကို ပေါင်းစပ်ထားပါသည်
     elif "PDF" in source_type:
-        st.info("Gutenberg သို့မဟုတ် PDFDrive မှ ဒေါင်းလုဒ်ဆွဲထားသော PDF စာအုပ်ကို တင်ပါ။ (စာအုပ်အရှည်ကြီးများကို အပိုင်းဆက်ခွဲပေးပါမည်)")
-        uploaded_pdf = st.file_uploader("📄 PDF ဖိုင် တင်ရန်:", type=["pdf"])
-        if uploaded_pdf and st.button("📂 PDF ဖိုင်ကို ဖတ်ရန်"):
-            with st.spinner("PDF ကို AI မှ ဖတ်နေပါသည်... ⏳"):
-                raw_text = extract_text_from_pdf(uploaded_pdf)
-                if "Error" not in raw_text:
-                    st.success("✅ PDF ဖတ်ရှုခြင်း အောင်မြင်ပါသည်! အောက်တွင် ဇာတ်လမ်းတွဲ ခွဲထုတ်နိုင်ပါပြီ။")
+        st.info("စာအုပ်၊ ဆောင်းပါး သို့မဟုတ် ဇာတ်လမ်းရှည်များကို တင်ပါ။ (PDF သို့မဟုတ် TXT ဖိုင်) သို့မဟုတ် အောက်တွင် စာသားကို တိုက်ရိုက် Paste ချပါ။")
+        
+        # 1. ဖိုင်တင်မည့်နေရာ (PDF နှင့် TXT ရသည်)
+        uploaded_file = st.file_uploader("📄 PDF သို့မဟုတ် TXT ဖိုင် တင်ရန်:", type=["pdf", "txt"])
+        st.write("**— (သို့မဟုတ်) —**")
+        # 2. စာသားကိုယ်တိုင် ထည့်မည့်နေရာ
+        manual_text = st.text_area("📝 စာသားများကို ဤနေရာတွင် တိုက်ရိုက် Paste ချပါ:", height=200, placeholder="အင်္ဂလိပ် သို့မဟုတ် မြန်မာ စာပိုဒ် အရှည်ကြီးများကို ဤနေရာတွင် ကူးထည့်ပါ...")
+        
+        if st.button("📂 ဇာတ်လမ်းတွဲ ဖန်တီးရန် အချက်အလက်ယူမည်"):
+            with st.spinner("အချက်အလက်များကို ဖတ်ရှုနေပါသည်... ⏳"):
+                if uploaded_file:
+                    if uploaded_file.name.endswith(".pdf"):
+                        raw_text = extract_text_from_pdf(uploaded_file)
+                    elif uploaded_file.name.endswith(".txt"):
+                        raw_text = uploaded_file.getvalue().decode("utf-8")
+                elif manual_text.strip():
+                    raw_text = manual_text
+                
+                if raw_text and "Error" not in raw_text:
+                    st.success("✅ အချက်အလက် ဖတ်ရှုခြင်း အောင်မြင်ပါသည်! အောက်တွင် ဇာတ်လမ်းတွဲ ခွဲထုတ်နိုင်ပါပြီ။")
                     st.session_state.temp_raw_text = raw_text
-                else: st.error(raw_text)
+                else: 
+                    st.error(raw_text if raw_text else "⚠️ ကျေးဇူးပြု၍ ဖိုင်တစ်ခုခု တင်ပါ၊ သို့မဟုတ် စာသားထည့်ပါ။")
 
     # 💡 ဇာတ်လမ်းတွဲ ခွဲထုတ်မည့် အပိုင်း
     if st.session_state.get("temp_raw_text"):
@@ -511,4 +530,3 @@ elif selected_menu == "🎨 Visual Director":
     if st.button("🔥 Generate SEO Pack", type="primary") and api_key and seo_text:
         with st.spinner("ရေးသားနေပါသည်..."):
             st.markdown(generate_content_safe(f"Create a highly engaging Burmese Caption, Title, and 5 hashtags for TikTok/FB based on: {seo_text}"))
-
