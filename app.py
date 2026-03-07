@@ -123,17 +123,17 @@ with st.sidebar:
     st.write("---")
     st.header("🧭 Menu")
     selected_menu = st.radio("သွားလိုသော နေရာကို ရွေးပါ:", [
-        "💡 Idea to Script", 
-        "📂 Video to Script", 
-        "🎵 Audio to Script", 
-        "🔴 YouTube Master", 
-        "🦁 Smart Translator", 
-        "🎙️ Audio Studio",
-        "👁️ Vision Studio"
-        "📚 မှတ်ဉာဏ်တိုက်", 
-        "🕵️‍♂️ Lore Hunter", 
-        "🎨 Visual Director"
-    ])
+        "💡 Idea to Script", 
+        "📂 Video to Script", 
+        "🎵 Audio to Script", 
+        "🔴 YouTube Master", 
+        "🦁 Smart Translator", 
+        "🎙️ Audio Studio",
+        "👁️ Vision Studio",  # 👈 ဒီနေရာလေးမှာ အသစ်ဝင်လာပါပြီ
+        "📚 မှတ်ဉာဏ်တိုက်", 
+        "🕵️‍♂️ Lore Hunter", 
+        "🎨 Visual Director"
+    ])
 
 # ==========================================
 # 🎬 4. MAIN INTERFACES
@@ -1144,6 +1144,7 @@ elif selected_menu == "🎨 Visual Director":
                 st.markdown(res)
         elif not seo_text:
             st.warning("⚠️ အကြောင်းအရာကို ထည့်ပါဦး ခေါင်းဆောင်!")
+
 
 
 
